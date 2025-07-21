@@ -158,8 +158,7 @@
             </a>
           </li>
           <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-          <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="#" class="flex items-center w-full text-white">
+            <a href="{% url 'crm_hubspot' %}" class="flex items-center w-full text-white">
               <span class="material-icons-outlined">hub</span>
               <span x-show="sidebarOpen" class="ml-4">CRM (HubSpot)</span>
             </a>
@@ -195,7 +194,7 @@
             <a href="{% url 'influencer_dashboard' %}" @click="open = false" class="block px-5 py-3 text-[#C5A46B] hover:bg-[#f3e9d2] hover:text-[#093f62] font-semibold transition">Panel de Influencer</a>
             {% endif %}
             {% if user.is_superuser %}
-            <a href="/admin/" @click="open = false" class="block px-5 py-3 text-[#093f62] hover:bg-[#f3e9d2] hover:text-[#C5A46B] font-semibold transition">Dashboard Admin</a>
+            <a href="{% url 'dashboard' %}" @click="open = false" class="block px-5 py-3 text-[#093f62] hover:bg-[#f3e9d2] hover:text-[#C5A46B] font-semibold transition">Dashboard Admin</a>
             {% endif %}
             <form action="{% url 'logout' %}" method="post">
               {% csrf_token %}

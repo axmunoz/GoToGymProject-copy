@@ -1,0 +1,31 @@
+{% extends '_base_dasboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-lg mx-auto bg-white p-8 rounded shadow">
+    <h2 class="text-2xl font-bold mb-4">Crear contacto en HubSpot</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block mb-1 font-semibold">Email</label>
+            <input type="email" name="email" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="mb-4">
+            <label class="block mb-1 font-semibold">Nombre</label>
+            <input type="text" name="firstname" class="w-full border rounded px-3 py-2">
+        </div>
+        <div class="mb-4">
+            <label class="block mb-1 font-semibold">Apellido</label>
+            <input type="text" name="lastname" class="w-full border rounded px-3 py-2">
+        </div>
+        <button type="submit" class="bg-[#093f62] text-white px-4 py-2 rounded hover:bg-[#0b4a77]">Crear contacto</button>
+    </form>
+    {% if messages %}
+        <ul class="mt-4">
+            {% for message in messages %}
+                <li class="text-{{ message.tags }}-600">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>
+{% endblock %}
