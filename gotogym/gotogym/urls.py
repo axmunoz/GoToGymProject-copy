@@ -29,10 +29,13 @@ from accounts.api import UserViewSet
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 
+from accounts.api import urlpatterns as accounts_api_urlpatterns
+
 urlpatterns = [
     path('accounts', lambda request: redirect('login', permanent=False)),
     path('setlang/', set_language, name='set_language'),
     path('api/', include(router.urls)),
+    path('api/', include((accounts_api_urlpatterns, 'accounts'), namespace='accounts-api')),
 ]
 
 urlpatterns += i18n_patterns(

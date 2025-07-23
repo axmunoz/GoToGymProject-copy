@@ -1,3 +1,14 @@
+  <div class="mb-4">
+    <strong>Video:</strong><br>
+    {% if product.video %}
+      <video controls class="w-full max-w-md mt-2">
+        <source src="{{ product.video.video.url }}" type="video/mp4">
+        Tu navegador no soporta la reproducción de video.
+      </video>
+    {% else %}
+      Sin video
+    {% endif %}
+  </div>
 {% extends 'base.html' %}
 {% block content %}
 <div class="max-w-xl mx-auto mt-10 bg-white p-8 rounded shadow">
@@ -18,11 +29,15 @@
     <strong>Stock:</strong> {{ product.stock }}
   </div>
   <div class="mb-4">
-    <strong>Imagen:</strong><br>
-    {% if product.image %}
-      <img src="{{ product.image.url }}" alt="{{ product.name }}" class="h-32 w-32 object-cover rounded mt-2"/>
+    <strong>Imágenes:</strong><br>
+    {% if product.images.all %}
+      <div class="flex gap-2 flex-wrap mt-2">
+        {% for img in product.images.all %}
+          <img src="{{ img.image.url }}" alt="{{ product.name }}" class="h-32 w-32 object-cover rounded"/>
+        {% endfor %}
+      </div>
     {% else %}
-      Sin imagen
+      Sin imágenes
     {% endif %}
   </div>
   <a href="{% url 'products:list_product' %}" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded transition">Volver</a>

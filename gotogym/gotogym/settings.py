@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'metricas',
     'planes',
     'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
