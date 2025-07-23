@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import ProductCategory, Product, Brand
+from .models import ProductCategory, Product, Brand, ProductImage, ProductVideo
 from django import forms
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -23,14 +23,27 @@ def add_category(request):
     return render(request, 'products/add_category.html', {'form': form})
 
 def add_product(request):
+    from .forms import ProductForm, ProductImageForm, ProductVideoForm
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
+        video_form = ProductVideoForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            product = form.save()
+            # Imágenes
+            images = request.FILES.getlist('image')
+            for idx, img in enumerate(images):
+                if idx < 7:
+                    ProductImage.objects.create(product=product, image=img)
+            # Video
+            if 'video' in request.FILES:
+                ProductVideo.objects.create(product=product, video=request.FILES['video'])
             return redirect('products:list_product')
     else:
         form = ProductForm()
-    return render(request, 'products/add_product.html', {'form': form})
+        video_form = ProductVideoForm()
+    # El formulario de imagen solo se usa para mostrar errores, no para el input
+    image_form = ProductImageForm()
+    return render(request, 'products/add_product.html', {'form': form, 'image_form': image_form, 'video_form': video_form})
 
 def list_category(request):
     categories = ProductCategory.objects.all()
@@ -51,21 +64,32 @@ def view_product(request, pk):
     return render(request, 'products/view_product.html', {'product': product})
 
 def edit_product(request, pk):
+    from .forms import ProductForm, ProductImageForm, ProductVideoForm
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
+        image_form = ProductImageForm(request.POST, request.FILES)
+        video_form = ProductVideoForm(request.POST, request.FILES)
         if form.is_valid():
-            # Si el usuario eliminó la imagen desde el frontend
-            if request.POST.get('image-clear') == '1':
-                if product.image:
-                    product.image.delete(save=False)
-                product.image = None
-            # Si sube una nueva imagen, se actualiza automáticamente
-            form.save()
+            product = form.save()
+            # Imágenes nuevas
+            images = request.FILES.getlist('image')
+            for idx, img in enumerate(images):
+                if idx < 7:
+                    ProductImage.objects.create(product=product, image=img)
+            # Video nuevo
+            if 'video' in request.FILES:
+                # Si ya existe, reemplaza
+                if hasattr(product, 'video'):
+                    product.video.video.delete(save=False)
+                    product.video.delete()
+                ProductVideo.objects.create(product=product, video=request.FILES['video'])
             return redirect('products:list_product')
     else:
         form = ProductForm(instance=product)
-    return render(request, 'products/edit_product.html', {'form': form, 'edit': True, 'product': product})
+        image_form = ProductImageForm()
+        video_form = ProductVideoForm()
+    return render(request, 'products/edit_product.html', {'form': form, 'image_form': image_form, 'video_form': video_form, 'edit': True, 'product': product})
 
 def delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk)

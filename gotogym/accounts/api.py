@@ -10,3 +10,12 @@ class UserSerializer(serializers.ModelSerializer):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+# Endpoints personalizados para registro e inicio de sesión
+from django.urls import path
+from .api_views import RegisterView, LoginView
+
+urlpatterns = [
+    path('register/', RegisterView.as_view(), name='api-register'),
+    path('login/', LoginView.as_view(), name='api-login'),
+]

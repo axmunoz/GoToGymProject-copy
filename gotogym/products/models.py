@@ -24,7 +24,23 @@ class Product(models.Model):
     discount = models.PositiveIntegerField(default=0, help_text="Porcentaje de descuento")
     stock = models.PositiveIntegerField(default=0)
     featured = models.BooleanField(default=False)
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+  
 
     def __str__(self):
         return self.name
+
+# Permite hasta 7 imágenes por producto
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='products/images/')
+
+    def __str__(self):
+        return f"Imagen de {self.product.name}"
+
+# Permite 1 video por producto
+class ProductVideo(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='video')
+    video = models.FileField(upload_to='products/videos/')
+
+    def __str__(self):
+        return f"Video de {self.product.name}"
