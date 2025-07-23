@@ -206,7 +206,7 @@
             <a href="{% url 'blog:add_post' %}" onclick="closeUserMenu()" class="block px-5 py-3 text-[#C5A46B] hover:bg-[#3a2e1a] hover:text-[#093f62] font-semibold transition">Escribir en el blog</a>
             {% endif %}
             {% if user.is_superuser %}
-            <a href="dashboard" onclick="closeUserMenu()" class="block px-5 py-3 text-[#F8F9FA] hover:bg-[#3a2e1a] hover:text-[#C5A46B] font-semibold transition">Dashboard Admin</a>
+            <a href="{% url 'dashboard' %}" onclick="closeUserMenu()" class="block px-5 py-3 text-[#F8F9FA] hover:bg-[#3a2e1a] hover:text-[#C5A46B] font-semibold transition">Dashboard Admin</a>
             {% endif %}
             <form action="{% url 'logout' %}" method="post">
               {% csrf_token %}

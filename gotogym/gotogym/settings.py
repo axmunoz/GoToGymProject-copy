@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'web',
     'metricas',
     'planes',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -102,7 +103,7 @@ WSGI_APPLICATION = 'gotogym.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'gotogym_db',
+        'NAME': 'gotogym_bd',
         'USER': 'gotogym_user',
         'PASSWORD': '123Margarita6',
         'HOST': 'localhost',
@@ -197,4 +198,6 @@ ALEGRA_EMAIL = 'support@gotogym.store'
 ALEGRA_API_TOKEN = '64faf379f6271aa04f62'
 
 AUTH_USER_MODEL = 'accounts.User'
+# --- Configuración HubSpot ---
+HUBSPOT_ACCESS_TOKEN = 'pat-na1-eba2dbd3-f523-4959-81de-ed332a5a3a48'
 

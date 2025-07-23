@@ -23,14 +23,21 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from rest_framework import routers
+from accounts.api import UserViewSet
+
+router = routers.DefaultRouter()
+router.register(r'users', UserViewSet)
 
 urlpatterns = [
     path('accounts', lambda request: redirect('login', permanent=False)),
     path('setlang/', set_language, name='set_language'),
+    path('api/', include(router.urls)),
 ]
 
 urlpatterns += i18n_patterns(
     path('', views.home, name='home'),
+    path('crm-hubspot/', views.crm_hubspot_view, name='crm_hubspot'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('influencer/', include('influencer.urls')),
