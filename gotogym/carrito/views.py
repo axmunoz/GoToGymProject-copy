@@ -50,11 +50,22 @@ def cart_detail(request):
     productos = Product.objects.filter(id__in=cart.keys())
     items = []
     total = 0
+    total_original = 0
+    from decimal import Decimal, ROUND_HALF_UP
+    ahorro_total = Decimal('0.00')
+    total_original = Decimal('0.00')
     for producto in productos:
         cantidad = cart[str(producto.id)]
-        subtotal = producto.price * cantidad
-        items.append({'producto': producto, 'cantidad': cantidad, 'subtotal': subtotal})
+        subtotal = (producto.discounted_price * cantidad).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        subtotal_original = (producto.price * cantidad).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        descuento_producto = (producto.price * (Decimal(producto.discount) / Decimal('100')) * cantidad).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        items.append({'producto': producto, 'cantidad': cantidad, 'subtotal': subtotal, 'subtotal_original': subtotal_original})
         total += subtotal
+        total_original += subtotal_original
+        ahorro_total += descuento_producto
+    total = Decimal(total).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    total_original = total_original.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    ahorro_total = ahorro_total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     shipping = 5 if items else 0
     total_price = total + shipping
 
@@ -69,10 +80,18 @@ def cart_detail(request):
     elif payment_status == 'rejected':
         messages.error(request, 'El pago fue rechazado. Intenta nuevamente.')
 
+    from django.conf import settings
+    # Usar la variable correcta de settings
+    mp_public_key = getattr(settings, 'MP_PUBLIC_KEY', '')
+    total_sin_envio = (total_original - ahorro_total).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     return render(request, 'carrito/cart_detail.html', {
         'items': items,
         'total': total,
+        'total_original': total_original,
         'shipping': shipping,
         'total_price': total_price,
         'num_items': sum(cart.values()),
+        'mp_public_key': mp_public_key,
+        'ahorro_total': ahorro_total,
+        'total_sin_envio': total_sin_envio,
     })

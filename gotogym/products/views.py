@@ -17,6 +17,8 @@ def add_category(request):
         form = ProductCategoryForm(request.POST)
         if form.is_valid():
             form.save()
+            from django.contrib import messages
+            messages.success(request, 'Categoría añadida con éxito')
             return redirect('products:list_category')
     else:
         form = ProductCategoryForm()
@@ -24,13 +26,20 @@ def add_category(request):
 
 def add_product(request):
     from .forms import ProductForm, ProductImageForm, ProductVideoForm
+    marcas = Brand.objects.all().order_by('name')
+    categorias = ProductCategory.objects.all().order_by('name')
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         video_form = ProductVideoForm(request.POST, request.FILES)
-        if form.is_valid():
+        valid = form.is_valid()
+        valid_video = True
+        # Si hay video, validar el form de video
+        if 'video' in request.FILES:
+            valid_video = video_form.is_valid()
+        if valid and valid_video:
             product = form.save()
             # Imágenes
-            images = request.FILES.getlist('image')
+            images = request.FILES.getlist('images')
             for idx, img in enumerate(images):
                 if idx < 7:
                     ProductImage.objects.create(product=product, image=img)
@@ -38,12 +47,18 @@ def add_product(request):
             if 'video' in request.FILES:
                 ProductVideo.objects.create(product=product, video=request.FILES['video'])
             return redirect('products:list_product')
+        # Si no es válido, mostrar errores
     else:
         form = ProductForm()
         video_form = ProductVideoForm()
-    # El formulario de imagen solo se usa para mostrar errores, no para el input
     image_form = ProductImageForm()
-    return render(request, 'products/add_product.html', {'form': form, 'image_form': image_form, 'video_form': video_form})
+    return render(request, 'products/add_product.html', {
+        'form': form,
+        'image_form': image_form,
+        'video_form': video_form,
+        'marcas': marcas,
+        'categorias': categorias
+    })
 
 def list_category(request):
     categories = ProductCategory.objects.all()
@@ -66,12 +81,25 @@ def view_product(request, pk):
 def edit_product(request, pk):
     from .forms import ProductForm, ProductImageForm, ProductVideoForm
     product = get_object_or_404(Product, pk=pk)
+    marcas = Brand.objects.all().order_by('name')
+    categorias = ProductCategory.objects.all().order_by('name')
+    max_images_left = 7 - product.images.count()
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         image_form = ProductImageForm(request.POST, request.FILES)
         video_form = ProductVideoForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save()
+            # Eliminar imágenes marcadas para borrar
+            deleted_images = request.POST.get('deleted_images', '')
+            if deleted_images:
+                ids = [int(i) for i in deleted_images.split(',') if i.isdigit()]
+                for img_id in ids:
+                    try:
+                        img = ProductImage.objects.get(id=img_id, product=product)
+                        img.delete()
+                    except ProductImage.DoesNotExist:
+                        pass
             # Imágenes nuevas
             images = request.FILES.getlist('image')
             for idx, img in enumerate(images):
@@ -89,7 +117,16 @@ def edit_product(request, pk):
         form = ProductForm(instance=product)
         image_form = ProductImageForm()
         video_form = ProductVideoForm()
-    return render(request, 'products/edit_product.html', {'form': form, 'image_form': image_form, 'video_form': video_form, 'edit': True, 'product': product})
+    return render(request, 'products/edit_product.html', {
+        'form': form,
+        'image_form': image_form,
+        'video_form': video_form,
+        'edit': True,
+        'product': product,
+        'marcas': marcas,
+        'categorias': categorias,
+        'max_images_left': max_images_left
+    })
 
 def delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -109,12 +146,29 @@ def delete_product_image(request, pk):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
+
+def delete_product_video(request, pk):
+    if request.method == 'POST':
+        from .models import ProductVideo
+        product = get_object_or_404(Product, pk=pk)
+        try:
+            product_video = ProductVideo.objects.get(product=product)
+            if product_video.video:
+                product_video.video.delete(save=False)
+            product_video.delete()
+            return JsonResponse({'success': True})
+        except ProductVideo.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'No video found'}, status=404)
+    return JsonResponse({'success': False}, status=400)
+
 def edit_category(request, pk):
     category = get_object_or_404(ProductCategory, pk=pk)
     if request.method == 'POST':
         form = ProductCategoryForm(request.POST, instance=category)
         if form.is_valid():
             form.save()
+            from django.contrib import messages
+            messages.success(request, 'Categoría actualizada correctamente')
             return redirect('products:list_category')
     else:
         form = ProductCategoryForm(instance=category)
@@ -155,10 +209,32 @@ def brand_edit(request, pk):
     marca = get_object_or_404(Brand, pk=pk)
     if request.method == 'POST':
         name = request.POST.get('name')
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        import sys
+        print(f"[DEBUG] Valor recibido para name: {name}", file=sys.stderr)
+        saved = False
         if name:
             marca.name = name
             marca.save()
+            saved = True
+            print(f"[DEBUG] Marca guardada: id={marca.id}, name={marca.name}", file=sys.stderr)
+            if is_ajax:
+                return JsonResponse({
+                    'id': marca.id,
+                    'name': marca.name,
+                    'received': name,
+                    'saved': saved,
+                    'method': request.method
+                })
             return redirect('products:brand_list')
+        if is_ajax:
+            return JsonResponse({
+                'error': 'No name provided',
+                'received': name,
+                'saved': saved,
+                'method': request.method
+            }, status=400)
+        return redirect('products:brand_list')
     marcas = Brand.objects.all().order_by('name')
     return render(request, 'products/brand_list.html', {'marcas': marcas, 'marca': marca})
 

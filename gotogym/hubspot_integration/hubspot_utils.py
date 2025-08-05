@@ -1,3 +1,18 @@
+# Obtener todos los contactos de HubSpot
+def get_all_hubspot_contacts():
+    contacts = []
+    try:
+        api_response = client.crm.contacts.basic_api.get_page(limit=100)
+        for obj in api_response.results:
+            properties = obj.properties
+            contacts.append({
+                'email': properties.get('email', ''),
+                'firstname': properties.get('firstname', ''),
+                'lastname': properties.get('lastname', ''),
+            })
+    except Exception as e:
+        pass
+    return contacts
 import hubspot
 from hubspot.crm.contacts import BasicApi, SimplePublicObjectInput
 from django.conf import settings

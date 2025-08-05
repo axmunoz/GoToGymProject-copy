@@ -14,6 +14,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse
 
+from .forms import EditProfileForm
+
 TERMS_PATH = Path(__file__).resolve().parent / 'templates' / 'accounts' / 'terms_and_conditions.html'
 
 User = get_user_model()
@@ -56,6 +58,12 @@ def register_view(request):
                 terms_accepted_at=timezone.now(),
                 terms_hash=hashlib.sha512(terms_text.encode()).hexdigest(),
             )
+            # Crear contacto en HubSpot automáticamente
+            try:
+                from hubspot_integration.hubspot_utils import create_hubspot_contact
+                create_hubspot_contact(email, first_name, last_name)
+            except Exception as e:
+                messages.warning(request, f'Usuario creado, pero no se pudo crear el contacto en HubSpot: {e}')
             messages.success(request, f'Registro exitoso. Tu usuario es: {username}. Ahora puedes iniciar sesión.')
             return redirect('login')
     return render(request, 'accounts/register.html')
@@ -90,39 +98,49 @@ def login_view(request):
     return render(request, 'accounts/login.html', {'error_message': error_message, 'show_logo': show_logo})
 
 @login_required
+
+@login_required
+def profile_view(request):
+    return render(request, 'accounts/profile.html', {
+        'user': request.user,
+        'base_template': '_base_dasboard.html' if request.user.is_superuser else 'base.html',
+    })
+
+
+
+# View to edit user profile
+@login_required
 def edit_profile(request):
     user = request.user
-    force_edit = False
-    if user.is_superuser and (not user.first_name or not user.last_name or user.first_name == 'None' or user.last_name == 'None'):
-        force_edit = True
-        messages.warning(request, 'Por favor, completa tu nombre y apellido para continuar.')
     if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '')
-        changed = False
-        if first_name and first_name != user.first_name:
-            user.first_name = first_name
-            changed = True
-        if last_name and last_name != user.last_name:
-            user.last_name = last_name
-            changed = True
-        if email and email != user.email:
-            user.email = email
-            changed = True
-        if password:
-            user.set_password(password)
-            update_session_auth_hash(request, user)
-            changed = True
-        if changed:
+        print('FILES ENVIADOS:', request.FILES)
+        form = EditProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            # Actualizar campos del usuario
+            user.first_name = form.cleaned_data['first_name']
+            user.last_name = form.cleaned_data['last_name']
+            user.email = form.cleaned_data['email']
+            user.phone_number = form.cleaned_data['phone_number']
+            user.age = form.cleaned_data['age']
+            user.weight = form.cleaned_data['weight']
+            user.city = form.cleaned_data['city']
+            user.height = form.cleaned_data['height']
+            # Eliminar imagen anterior si se sube una nueva
+            if 'image' in request.FILES:
+                if user.image:
+                    user.image.delete(save=False)
+                user.image = request.FILES['image']
             user.save()
-            # Si es superusuario y acaba de completar nombre y apellido, redirige al dashboard con notificación
-            if user.is_superuser and first_name and last_name:
-                messages.success(request, 'Usuario actualizado')
-                return redirect('dashboard')
-            messages.success(request, 'Perfil actualizado correctamente.')
+            print('IMAGEN GUARDADA:', user.image)
+            messages.success(request, _('Perfil actualizado correctamente.'))
+            return redirect('profile')
         else:
-            messages.info(request, 'No se realizaron cambios.')
-        return redirect('edit_profile')
-    return render(request, 'accounts/edit_profile.html', {'user': user, 'force_edit': force_edit})
+            print('ERRORES FORMULARIO:', form.errors)
+            messages.error(request, _('Por favor corrige los errores en el formulario.'))
+    else:
+        form = EditProfileForm(instance=user)
+    return render(request, 'accounts/edit_profile.html', {
+        'form': form,
+        'user': user,
+        'base_template': '_base_dasboard.html' if user.is_superuser else 'base.html',
+    })

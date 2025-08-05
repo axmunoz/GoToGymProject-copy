@@ -123,6 +123,21 @@
       </div>
     </div>
     <div id="modalBlurBg" class="modal-blur-bg hidden"></div>
+    <div id="categoryNotification" class="fixed top-8 right-8 z-50 hidden transition-all duration-300">
+      <div id="categoryNotificationContent" class="px-6 py-3 rounded-xl shadow-lg font-semibold text-white flex items-center gap-2"></div>
+    </div>
+    {% if messages %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        {% for message in messages %}
+          showCategoryNotification("{{ message|escapejs }}", "success");
+        {% endfor %}
+      });
+    </script>
+    {% endif %}
+    <div id="categoryDeleteNotification" class="fixed top-8 right-8 z-50 hidden transition-all duration-300">
+      <div id="categoryDeleteNotificationContent" class="px-6 py-3 rounded-xl shadow-lg font-semibold text-white flex items-center gap-2"></div>
+    </div>
   </div>
 </div>
 <script>
@@ -194,6 +209,7 @@ deleteCategoryBtns.forEach(btn => {
     openDeleteCategoryModal(categoryId, categoryName);
   };
 });
+
 deleteCategoryForm.onsubmit = function(e) {
   e.preventDefault();
   if (!categoryIdToDelete) return;
@@ -207,8 +223,38 @@ deleteCategoryForm.onsubmit = function(e) {
       const row = document.querySelector(`button.delete-category-btn[data-id='${categoryIdToDelete}']`)?.closest('tr');
       if (row) row.remove();
       closeDeleteCategoryModal();
+      showCategoryDeleteNotification('Categoría eliminada con éxito');
     }
   });
 };
+
+function showCategoryNotification(message, type = 'success') {
+  const notif = document.getElementById('categoryNotification');
+  const notifContent = document.getElementById('categoryNotificationContent');
+  notifContent.textContent = message;
+  notifContent.className = 'px-6 py-3 rounded-xl shadow-lg font-semibold text-white flex items-center gap-2 ' + (type === 'error' ? 'bg-red-500' : 'bg-green-500');
+  notif.classList.remove('hidden');
+  setTimeout(() => notif.classList.add('hidden'), 1800);
+}
+
+function showCategoryDeleteNotification(message) {
+  const notif = document.getElementById('categoryDeleteNotification');
+  const notifContent = document.getElementById('categoryDeleteNotificationContent');
+  notifContent.textContent = message;
+  notifContent.className = 'px-6 py-3 rounded-xl shadow-lg font-semibold text-white flex items-center gap-2 bg-red-500';
+  notif.classList.remove('hidden');
+  setTimeout(() => notif.classList.add('hidden'), 1800);
+}
+// Notificación al añadir categoría
+const addCategoryForm = document.querySelector('a[href$="add_category"]')?.closest('form');
+const addCategoryBtn = document.querySelector('a[href$="add_category"]');
+if (addCategoryBtn) {
+  addCategoryBtn.addEventListener('click', function(e) {
+    // Si es un enlace normal, no interceptar
+    // Si en el futuro se usa AJAX para añadir, aquí se puede mostrar la notificación
+    // showCategoryNotification('Categoría añadida con éxito', 'success');
+  });
+}
+// Si tienes un formulario AJAX para añadir, llama a showCategoryNotification('Categoría añadida con éxito', 'success'); tras éxito
 </script>
 {% endblock %}

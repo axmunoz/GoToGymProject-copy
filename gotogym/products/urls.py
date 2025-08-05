@@ -12,6 +12,7 @@ urlpatterns = [
     path('product/<int:pk>/edit/', views.edit_product, name='edit_product'),
     path('product/<int:pk>/delete/', views.delete_product, name='delete_product'),
     path('delete-image/<int:pk>/', views.delete_product_image, name='delete_product_image'),
+    path('delete-video/<int:pk>/', views.delete_product_video, name='delete_product_video'),
     path('category/<int:pk>/edit/', views.edit_category, name='edit_category'),
     path('category/<int:pk>/delete/', views.delete_category, name='delete_category'),
     path('delete-category-ajax/<int:pk>/', views.delete_category_ajax, name='delete_category_ajax'),

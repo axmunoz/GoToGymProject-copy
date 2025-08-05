@@ -24,7 +24,20 @@ class Product(models.Model):
     discount = models.PositiveIntegerField(default=0, help_text="Porcentaje de descuento")
     stock = models.PositiveIntegerField(default=0)
     featured = models.BooleanField(default=False)
-  
+    discounted_price = models.DecimalField(max_digits=12, decimal_places=4, default=0)
+
+    def save(self, *args, **kwargs):
+        # Si no hay descuento, el precio con descuento es igual al precio
+        from decimal import Decimal, InvalidOperation
+        try:
+            discount = Decimal(self.discount)
+        except (TypeError, ValueError, InvalidOperation):
+            discount = Decimal('0')
+        if discount > 0:
+            self.discounted_price = self.price * (Decimal('1.0') - (discount / Decimal('100')))
+        else:
+            self.discounted_price = self.price
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

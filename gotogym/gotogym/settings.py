@@ -1,3 +1,4 @@
+
 """
 Django settings for gotogym project.
 
@@ -37,6 +38,11 @@ ALLOWED_HOSTS = [
     '192.168.137.169',
 ]
 
+# Permitir peticiones desde ngrok para pruebas con MercadoPago
+CSRF_TRUSTED_ORIGINS = [
+    "https://d4ed65101df0.ngrok-free.app"
+]
+
 
 # Application definition
 
@@ -63,7 +69,16 @@ INSTALLED_APPS = [
     'planes',
     'rest_framework',
     'rest_framework.authtoken',
+    'mercadopago_integration',
+    'hubspot_integration',
+    
 ]
+
+
+# Configuración Mercado Pago
+MP_PUBLIC_KEY = 'APP_USR-421c4705-d7ab-4010-beff-c4ee8a9cf475'
+MP_ACCESS_TOKEN = 'APP_USR-185977213159307-061021-53a23bf1a0818fa005a401918ff36185-1845381006'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -90,6 +105,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'configuracion_marca.context_processors.color_navbar',  # Agregado para el color de la navbar
                 'carrito.context_processors.cart_count',  # Para mostrar el número de productos en el carrito
+                'carrito.context_processors.mercadopago_public_key',  # Public key MercadoPago en templates
             ],
         },
     },
@@ -200,5 +216,4 @@ ALEGRA_API_TOKEN = '64faf379f6271aa04f62'
 
 AUTH_USER_MODEL = 'accounts.User'
 # --- Configuración HubSpot ---
-HUBSPOT_ACCESS_TOKEN = 'pat-na1-eba2dbd3-f523-4959-81de-ed332a5a3a48'
 

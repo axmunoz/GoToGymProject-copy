@@ -36,11 +36,13 @@ urlpatterns = [
     path('setlang/', set_language, name='set_language'),
     path('api/', include(router.urls)),
     path('api/', include((accounts_api_urlpatterns, 'accounts'), namespace='accounts-api')),
+    
 ]
 
 urlpatterns += i18n_patterns(
     path('', views.home, name='home'),
-    path('crm-hubspot/', views.crm_hubspot_view, name='crm_hubspot'),
+    path('hubspot/', include(('hubspot_integration.urls', 'hubspot_integration'), namespace='hubspot_integration')),
+    path('crm-hubspot/', lambda request: redirect('/es/hubspot/crm/', permanent=True)),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('influencer/', include('influencer.urls')),
@@ -51,12 +53,14 @@ urlpatterns += i18n_patterns(
     path('accounts/reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='accounts/password_reset_complete.html'), name='password_reset_complete'),
     path('blog/', include('blog.urls', namespace='blog')),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('admin-superusers/', views.manage_superusers, name='admin_superusers'),
     path('products/', include('products.urls', namespace='products')),
     path('configuracion-marca/', include('configuracion_marca.urls', namespace='configuracion_marca')),
     path('contabilidad/', include('contabilidad.urls', namespace='contabilidad')),
     path('tienda/', include('tienda.urls', namespace='tienda')),
     path('carrito/', include('carrito.urls', namespace='carrito')),
     # path('crm/', include('crm.urls')),
+    path('mercadopago/', include('mercadopago_integration.urls')),
     path('web/', include('web.urls', namespace='web')),
     path('metricas/', include('metricas.urls', namespace='metricas')),
     path('planes/', include('planes.urls')),

@@ -1,17 +1,27 @@
-from hubspot_integration.hubspot_utils import create_hubspot_contact
-from django.contrib import messages
-
-def crm_hubspot_view(request):
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import user_passes_test, login_required
+# Vista para gestionar superadmins
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def manage_superusers(request):
+    User = get_user_model()
     if request.method == 'POST':
-        email = request.POST.get('email')
-        firstname = request.POST.get('firstname')
-        lastname = request.POST.get('lastname')
+        user_id = request.POST.get('user_id')
+        action = request.POST.get('action')
         try:
-            response = create_hubspot_contact(email, firstname, lastname)
-            messages.success(request, 'Contacto creado en HubSpot correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al crear contacto: {e}')
-    return render(request, 'crm_hubspot.html')
+            user = User.objects.get(id=user_id)
+            if action == 'make_super':
+                user.is_superuser = True
+                user.is_staff = True
+                user.save(update_fields=['is_superuser', 'is_staff'])
+            elif action == 'remove_super':
+                user.is_superuser = False
+                user.save(update_fields=['is_superuser'])
+        except Exception:
+            pass
+    users = User.objects.all().order_by('username')
+    return render(request, 'admin_superusers.html', {'users': users})
+
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from blog.models import Post

@@ -10,6 +10,17 @@ class ProductForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 3}),
         }
 
+    def clean_price(self):
+        from decimal import Decimal, InvalidOperation
+        price = self.cleaned_data['price']
+        if isinstance(price, str):
+            price = price.replace('.', '')
+            price = price.replace(',', '.')
+        try:
+            return Decimal(price)
+        except (InvalidOperation, ValueError, TypeError):
+            raise forms.ValidationError('Precio inválido')
+
 # Formulario para múltiples imágenes
 class ProductImageForm(forms.ModelForm):
     image = forms.ImageField()

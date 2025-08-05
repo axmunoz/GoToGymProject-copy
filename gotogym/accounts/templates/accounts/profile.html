@@ -1,0 +1,54 @@
+{% extends base_template %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-16 rounded-3xl shadow-2xl border border-[#a48be0] bg-white overflow-hidden">
+  <div class="bg-[#093f62] p-10 flex flex-col md:flex-row items-center gap-8 relative shadow-lg">
+    <div class="flex-shrink-0">
+      {% if user.image %}
+        <img src="{{ user.image.url }}?v={{ user.date_joined|date:'U' }}{{ user.image.name|default:'' }}" alt="Foto de perfil" class="h-24 w-24 object-cover rounded-full border-4 border-white shadow-lg">
+      {% else %}
+        <span class="flex items-center justify-center h-24 w-24 rounded-full border-4 border-white shadow-lg bg-[#ede9f7] text-[#a48be0]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="32" />
+            <circle cx="32" cy="26" r="12" fill="#a48be0"/>
+            <ellipse cx="32" cy="48" rx="16" ry="10" fill="#a48be0"/>
+            <circle cx="32" cy="26" r="10" fill="#ede9f7"/>
+            <ellipse cx="32" cy="48" rx="14" ry="8" fill="#ede9f7"/>
+          </svg>
+        </span>
+      {% endif %}
+    </div>
+    <div class="flex-1 text-center md:text-left">
+      <h2 class="text-3xl font-extrabold text-white mb-1">{{ user.get_full_name|default:user.username }}</h2>
+      <div class="text-white/80 text-base flex items-center justify-center md:justify-start gap-2">
+        <span class="material-icons text-lg align-middle">calendar_month</span>
+        Miembro desde {{ user.date_joined|date:'F Y' }}
+      </div>
+    </div>
+  </div>
+  <div class="p-8 bg-white">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+      <div>
+        <div class="mb-2 text-xs text-gray-400 font-bold tracking-widest">NOMBRE COMPLETO</div>
+        <div class="text-lg font-semibold text-gray-900">{{ user.get_full_name|default:user.username }}</div>
+        <div class="mt-6 mb-2 text-xs text-gray-400 font-bold tracking-widest">CIUDAD</div>
+        <div class="text-lg font-semibold text-gray-900">{{ user.city|default:'-' }}</div>
+        <div class="mt-6 mb-2 text-xs text-gray-400 font-bold tracking-widest">EDAD</div>
+        <div class="text-lg font-semibold text-gray-900">{{ user.age|default:'-' }} años</div>
+      </div>
+      <div>
+        <div class="mb-2 text-xs text-gray-400 font-bold tracking-widest">EMAIL</div>
+        <div class="text-lg font-semibold text-gray-900">{{ user.email }}</div>
+        <div class="mt-6 mb-2 text-xs text-gray-400 font-bold tracking-widest">TELÉFONO</div>
+        <div class="text-lg font-semibold text-gray-900">{{ user.phone_number|default:'-' }}</div>
+      </div>
+    </div>
+    <div class="flex justify-end">
+      <a href="{% url 'edit_profile' %}" class="px-8 py-3 rounded-xl bg-[#093f62] text-white font-extrabold shadow-lg hover:bg-[#e7c98a] hover:text-[#093f62] transition-all text-lg flex items-center gap-2">
+        <span class="material-icons text-base align-middle">edit</span> Editar Perfil
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

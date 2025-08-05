@@ -1,0 +1,1 @@
+# Mercadopago integration app init

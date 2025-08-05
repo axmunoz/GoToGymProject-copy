@@ -16,8 +16,6 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-1 gap-8">
       <!-- Tabla de marcas a la izquierda (más ancha) -->
-      
-        
         <div class="overflow-x-auto rounded-xl border border-gray-200">
           <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-100 text-gray-700 uppercase tracking-wide text-xs">
@@ -42,7 +40,7 @@
                     </button>
                     <form method="post" action="{% url 'products:brand_delete' b.id %}" class="delete-brand-form" data-id="{{ b.id }}" style="display:inline;">
                       {% csrf_token %}
-                      <button type="submit" class="inline-flex items-center justify-center text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-full p-2 transition" title="Eliminar" onclick="return confirm('¿Seguro que deseas eliminar esta marca?');">
+                      <button type="submit" class="inline-flex items-center justify-center text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-full p-2 transition" title="Eliminar">
                         <span class="material-icons-outlined align-middle">delete</span>
                       </button>
                     </form>
@@ -162,21 +160,41 @@
         e.preventDefault();
         const brandId = editBrandIdInput.value;
         const name = editBrandNameInput.value;
-        fetch(`/products/brands/${brandId}/edit/`, {
+        // Detectar prefijo de idioma actual (por ejemplo: /es/ o /en/)
+        let langPrefix = '';
+        const pathMatch = window.location.pathname.match(/^\/(\w{2})(\/|$)/);
+        if (pathMatch) {
+          langPrefix = `/${pathMatch[1]}`;
+        }
+        fetch(`${langPrefix}/products/brands/${brandId}/edit/`, {
           method: 'POST',
           headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
           },
           body: `name=${encodeURIComponent(name)}`
-        }).then(res => {
-          if (res.ok) {
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.id && data.name) {
+            // Actualiza el nombre en la tabla
+            const rows = document.querySelectorAll('table tbody tr');
+            for (const row of rows) {
+              const idCell = row.querySelector('td');
+              if (idCell && idCell.textContent.trim() == data.id) {
+                const nameCell = idCell.nextElementSibling;
+                if (nameCell) nameCell.textContent = data.name;
+                break;
+              }
+            }
             showBrandNotification('Marca actualizada correctamente', 'success');
-            setTimeout(() => location.reload(), 1200);
+            editBrandModal.classList.add('hidden');
           } else {
             showBrandNotification('Error al actualizar la marca', 'error');
           }
-        }).catch(() => showBrandNotification('Error de red', 'error'));
+        })
+        .catch(() => showBrandNotification('Error de red', 'error'));
       };
 
       const addBrandForm = addBrandModal.querySelector('form');
@@ -199,27 +217,62 @@
           }
         }).catch(() => showBrandNotification('Error de red', 'error'));
       };
-      // Eliminar marca por AJAX
+      // Modal de confirmación para eliminar marca
+      let deleteBrandModal = document.getElementById('deleteBrandModal');
+      if (!deleteBrandModal) {
+        deleteBrandModal = document.createElement('div');
+        deleteBrandModal.id = 'deleteBrandModal';
+        deleteBrandModal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden';
+        deleteBrandModal.innerHTML = `
+          <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border border-gray-200 text-center relative animate-fade-in">
+            <button id="closeDeleteBrandModal" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition text-2xl">
+              <span class="material-icons-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold mb-4">¿Eliminar colección?</h2>
+            <p class="mb-6">Esta acción no se puede deshacer.</p>
+            <div class="flex gap-4 justify-center">
+              <button id="cancelDeleteBrandBtn" class="px-6 py-2 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300">Cancelar</button>
+              <button id="confirmDeleteBrandBtn" class="px-6 py-2 rounded-xl bg-gradient-to-r from-red-500 to-red-400 text-white font-bold shadow hover:from-red-600 hover:to-red-500">Eliminar</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(deleteBrandModal);
+      }
+      let brandFormToDelete = null;
       const deleteBrandForms = document.querySelectorAll('.delete-brand-form');
       deleteBrandForms.forEach(form => {
         form.onsubmit = function(e) {
           e.preventDefault();
-          if (!confirm('¿Seguro que deseas eliminar esta marca?')) return;
-          fetch(form.action, {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
-            },
-          }).then(res => {
-            if (res.ok) {
-              showBrandNotification('Marca eliminada correctamente', 'success');
-              setTimeout(() => location.reload(), 1200);
-            } else {
-              showBrandNotification('Error al eliminar la marca', 'error');
-            }
-          }).catch(() => showBrandNotification('Error de red', 'error'));
+          brandFormToDelete = form;
+          deleteBrandModal.classList.remove('hidden');
         };
       });
+      document.getElementById('closeDeleteBrandModal').onclick = function() {
+        deleteBrandModal.classList.add('hidden');
+        brandFormToDelete = null;
+      };
+      document.getElementById('cancelDeleteBrandBtn').onclick = function() {
+        deleteBrandModal.classList.add('hidden');
+        brandFormToDelete = null;
+      };
+      document.getElementById('confirmDeleteBrandBtn').onclick = function() {
+        if (!brandFormToDelete) return;
+        fetch(brandFormToDelete.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': brandFormToDelete.querySelector('[name=csrfmiddlewaretoken]').value,
+          },
+        }).then(res => {
+          if (res.ok) {
+            showBrandNotification('Colección eliminada con éxito', 'success');
+            deleteBrandModal.classList.add('hidden');
+            setTimeout(() => location.reload(), 1200);
+          } else {
+            showBrandNotification('Error al eliminar la colección', 'error');
+          }
+        }).catch(() => showBrandNotification('Error de red', 'error'));
+        brandFormToDelete = null;
+      };
     </script>
   </div>
 </div>

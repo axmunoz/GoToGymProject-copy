@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load i18n %}
+{% load humanize %}
 {% block title %}Tienda{% endblock %}
 
 {% block content %}
@@ -29,10 +30,37 @@
       <div id="slider-wrapper" class="overflow-hidden">
         <div id="featured-slider" class="flex gap-6 transition-all duration-300">
           {% for producto in featured_products %}
-          <div class="featured-card min-w-[220px] max-w-[240px] bg-white rounded-xl shadow p-4 flex flex-col items-center">
-            <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="h-32 object-contain mb-2 rounded" />
-            <div class="font-semibold text-center text-[#093f62]">{{ producto.name }}</div>
-            <div class="text-[#C5A46B] font-bold text-lg mb-2">${{ producto.price|floatformat:0 }}</div>
+          <div class="featured-card min-w-[220px] max-w-[240px] bg-white rounded-xl shadow p-4 flex flex-col items-center group relative">
+            <div class="relative w-full mb-2">
+              {% if producto.images.first %}
+                <img src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="h-32 object-contain w-full rounded" loading="lazy" />
+              {% else %}
+                <div class="h-32 w-full flex items-center justify-center bg-gray-100 text-gray-400 rounded">Sin imagen</div>
+              {% endif %}
+              {% if producto.discount and producto.discount > 0 %}
+                <span class="absolute bottom-2 right-2 px-2 py-1 rounded bg-orange-500 text-white text-xs font-bold shadow">-{{ producto.discount|floatformat:0 }}%</span>
+              {% endif %}
+              <button 
+                class="absolute top-2 right-2 bg-[#C5A46B] text-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none z-10 add-to-cart-btn"
+                data-product-id="{{ producto.id }}"
+                title="Añadir al carrito"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 18c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm10 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zM7.334 16h9.332c.828 0 1.554-.522 1.847-1.303l2.666-6.666A1 1 0 0 0 20.334 6H6.21l-.94-2.342A1 1 0 0 0 4.334 3H2.334v2h1.334l3.6 8.59-1.35 2.44C5.16 16.37 5.92 18 7.334 18zm0-2l1.1-2h7.132l1.1 2H7.334z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="font-semibold text-center text-[#093f62] mt-2">{{ producto.name }}</div>
+            <div class="w-full flex items-center justify-center mb-2 mt-1">
+              {% if producto.discount and producto.discount > 0 %}
+                <div class="flex flex-col items-center flex-1">
+                  <span class="text-[#C5A46B] font-bold text-2xl leading-tight">${{ producto.discounted_price|floatformat:0|intcomma }}</span>
+                  <span class="text-gray-400 text-xs font-semibold line-through">${{ producto.price|floatformat:0|intcomma }}</span>
+                </div>
+              {% else %}
+                <span class="text-[#C5A46B] font-bold text-2xl">${{ producto.price|floatformat:0|intcomma }}</span>
+              {% endif %}
+            </div>
             <a href="{% url 'tienda:producto_detail' producto.id %}"
                class="mt-auto inline-block px-4 py-1 rounded-full bg-[#C5A46B] text-white font-semibold text-sm hover:bg-[#093f62] hover:text-[#C5A46B] transition">
               Ver detalles
@@ -51,7 +79,7 @@
     </div>
   </div>
 
-  {#–––––––––––– Filtros horizontales ––––––––––––#}
+
   <form method="get" id="horizontal-filter-form"
         class="flex flex-wrap items-center justify-between gap-4 bg-white rounded-2xl shadow-lg px-8 py-5 mb-8 border border-[#e7c98a]">
     <div class="flex items-center gap-2 flex-1 min-w-[250px] order-1">
@@ -182,12 +210,12 @@
         {% for producto in productos %}
         <div class="bg-white rounded-xl shadow hover:shadow-lg transition-all p-4 flex flex-col group relative">
           <div class="relative mb-4">
-            {% if producto.image %}
-            <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="w-full h-40 object-contain rounded">
+            {% if producto.images.first %}
+              <img src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="w-full h-40 object-contain rounded" loading="lazy">
             {% else %}
-            <div class="w-full h-40 bg-gray-100 flex items-center justify-center rounded text-gray-400">
-              Sin imagen
-            </div>
+              <div class="w-full h-40 bg-gray-100 flex items-center justify-center rounded text-gray-400">
+                Sin imagen
+              </div>
             {% endif %}
             <button 
               class="absolute top-1/2 right-4 -translate-y-1/2 bg-[#C5A46B] text-white rounded-full p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none z-10 add-to-cart-btn"
@@ -200,7 +228,15 @@
             </button>
           </div>
           <h3 class="font-bold text-lg mb-1">{{ producto.name }}</h3>
-          <div class="text-[#C5A46B] font-bold text-xl mb-1">${{ producto.price }}</div>
+          <div class="flex items-center gap-2 mb-1">
+            {% if producto.discount and producto.discount > 0 %}
+              <span class="text-gray-400 text-base font-semibold line-through">${{ producto.price|floatformat:0|intcomma }}</span>
+              <span class="text-[#C5A46B] font-bold text-xl">${{ producto.discounted_price|floatformat:0|intcomma }}</span>
+              <span class="ml-2 px-2 py-1 rounded bg-orange-500 text-white text-xs font-bold">-{{ producto.discount|floatformat:0 }}%</span>
+            {% else %}
+              <span class="text-[#C5A46B] font-bold text-xl">${{ producto.price|floatformat:0|intcomma }}</span>
+            {% endif %}
+          </div>
           <div class="mb-2 text-sm text-gray-500">Categoría: {{ producto.category.name }}</div>
           <a href="{% url 'tienda:producto_detail' producto.id %}" class="mt-auto inline-block bg-gradient-to-r from-[#C5A46B] to-[#e7c98a] text-black font-bold py-2 px-4 rounded-lg shadow hover:from-[#e7c98a] hover:to-[#C5A46B] transition-all text-center">
             Ver detalles

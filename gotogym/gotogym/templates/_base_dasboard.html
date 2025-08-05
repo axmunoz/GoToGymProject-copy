@@ -34,51 +34,21 @@
             </a>
           </li>
           <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="#" class="flex items-center w-full text-white">
+            <a href="{% url 'profile' %}" class="flex items-center w-full text-white">
               <span class="material-icons-outlined">person</span>
-              <span x-show="sidebarOpen" class="ml-4">Editar Perfil</span>
+              <span x-show="sidebarOpen" class="ml-4">Perfil</span>
             </a>
           </li>
-          <li class="px-4 py-2 hover:bg-white/10 flex items-center">
+          <!-- <li class="px-4 py-2 hover:bg-white/10 flex items-center">
             <a href="{% url 'configuracion_marca:paleta' %}" class="flex items-center w-full text-white">
               <span class="material-icons-outlined">settings</span>
               <span x-show="sidebarOpen" class="ml-4">Configuración Marca</span>
             </a>
-          </li>
-          {% comment %} <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="{% url 'group_chart' %}" class="flex items-center w-full text-white">
-              <span class="material-icons-outlined">timeline</span>
-              <span x-show="sidebarOpen" class="ml-4">Línea Tendencia</span>
-            </a>
-          </li> {% endcomment %}
-          {% comment %} <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="{% url 'nps_chart' %}" class="flex items-center w-full text-white">
-              <span class="material-icons-outlined">thumbs_up_down</span>
-              <span x-show="sidebarOpen" class="ml-4">Net Promoter Score</span>
-            </a>
-          </li> {% endcomment %}
+          </li> -->
           <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="#" class="flex items-center w-full text-white">
+            <a href="{% url 'admin_superusers' %}" class="flex items-center w-full text-white">
               <span class="material-icons-outlined">admin_panel_settings</span>
-              <span x-show="sidebarOpen" class="ml-4">Crear Super Admin</span>
-            </a>
-          </li>
-          {% comment %} <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="#" class="flex items-center w-full text-white">
-              <span class="material-icons-outlined">bar_chart</span>
-              <span x-show="sidebarOpen" class="ml-4">Consolidados</span>
-            </a>
-          </li> {% endcomment %}
-          {% comment %} <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="#" class="flex items-center w-full text-white">
-              <span class="material-icons-outlined">search</span>
-              <span x-show="sidebarOpen" class="ml-4">Buscador</span>
-            </a>
-          </li> {% endcomment %}
-          <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="#" class="flex items-center w-full text-white">
-              <span class="material-icons-outlined">edit</span>
-              <span x-show="sidebarOpen" class="ml-4">Editar Páginas Web</span>
+              <span x-show="sidebarOpen" class="ml-4">Gestionar Super Admins</span>
             </a>
           </li>
           <li class="hover:bg-white/10" x-data="{ open: false }" @click.away="open = false">
@@ -109,19 +79,8 @@
               </ul>
             </template>
           </li>
-          <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <form action="{% url 'logout' %}" method="post" class="w-full flex items-center">
-              {% csrf_token %}
-              <span class="material-icons-outlined">logout</span>
-              <button x-show="sidebarOpen" class="ml-4 text-white" type="submit">Logout</button>
-            </form>
-          </li>
-          <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="{% url 'blog:dashboard' %}" class="flex items-center w-full text-white" @click="$dispatch('close-catalogo')">
-              <span class="material-icons-outlined">article</span>
-              <span x-show="sidebarOpen" class="ml-4">Gestionar Posts</span>
-            </a>
-          </li>
+          
+          
           <li class="hover:bg-white/10" x-data="{ open: false }" @click.away="open = false">
             <div class="flex items-center px-4 py-2">
               <button @click="open = !open" class="flex items-center w-full text-white focus:outline-none">
@@ -139,7 +98,7 @@
                 </li>
                 <li>
                   <a href="{% url 'blog:categorias_dashboard' %}" @click="open = false" class="flex items-center text-white hover:text-[#C5A46B] py-1">
-                    <span class="material-icons-outlined text-sm mr-2">category</span> Categorías Publicaciones
+                    <span class="material-icons-outlined text-sm mr-2">category</span> Categorías Post
                   </a>
                 </li>
               </ul>
@@ -151,17 +110,34 @@
               <span x-show="sidebarOpen" class="ml-4">Contabilidad</span>
             </a>
           </li>
-          <li class="px-4 py-2 hover:bg-white/10 flex items-center">
+          <!-- <li class="px-4 py-2 hover:bg-white/10 flex items-center">
             <a href="{% url 'web:config' %}" class="flex items-center w-full text-white" @click="$dispatch('close-catalogo')">
               <span class="material-icons-outlined">palette</span>
               <span x-show="sidebarOpen" class="ml-4">Configurar Web</span>
             </a>
-          </li>
-          <li class="px-4 py-2 hover:bg-white/10 flex items-center">
-            <a href="{% url 'crm_hubspot' %}" class="flex items-center w-full text-white">
-              <span class="material-icons-outlined">hub</span>
-              <span x-show="sidebarOpen" class="ml-4">CRM (HubSpot)</span>
-            </a>
+          </li> -->
+          <li class="hover:bg-white/10" x-data="{ open: false }" @click.away="open = false">
+            <div class="flex items-center px-4 py-2">
+              <button @click="open = !open" class="flex items-center w-full text-white focus:outline-none">
+                <span class="material-icons-outlined">hub</span>
+                <span x-show="sidebarOpen" class="ml-4">CRM (HubSpot)</span>
+                <span class="material-icons-outlined ml-auto" x-show="sidebarOpen">expand_more</span>
+              </button>
+            </div>
+            <template x-if="open && sidebarOpen">
+              <ul class="pl-12">
+                <li>
+                  <a href="{% url 'hubspot_integration:list_contacts' %}" @click="open = false" class="flex items-center text-white hover:text-[#C5A46B] py-1">
+                    <span class="material-icons-outlined text-sm mr-2">list</span> Listar contactos
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'hubspot_integration:crm_hubspot' %}" @click="open = false" class="flex items-center text-white hover:text-[#C5A46B] py-1">
+                    <span class="material-icons-outlined text-sm mr-2">person_add</span> Crear contacto
+                  </a>
+                </li>
+              </ul>
+            </template>
           </li>
           <li class="px-4 py-2 hover:bg-white/10 flex items-center">
             <a href="{% url 'metricas:metricas_dashboard' %}" class="flex items-center w-full text-white">
@@ -169,12 +145,19 @@
               <span x-show="sidebarOpen" class="ml-4">Métricas</span>
             </a>
           </li>
-          {# <li class="px-4 py-2 hover:bg-white/10 flex items-center">
+           <li class="px-4 py-2 hover:bg-white/10 flex items-center">
             <a href="{% url 'planes_list' %}" class="flex items-center w-full text-white">
               <span class="material-icons-outlined">workspace_premium</span>
               <span x-show="sidebarOpen" class="ml-4">Planes de Suscripción</span>
             </a>
-          </li> #}
+          </li>
+          <li class="px-4 py-2 hover:bg-white/10 flex items-center">
+            <form action="{% url 'logout' %}" method="post" class="w-full flex items-center">
+              {% csrf_token %}
+              <span class="material-icons-outlined">logout</span>
+              <button x-show="sidebarOpen" class="ml-4 text-white" type="submit">Logout</button>
+            </form>
+          </li>
         </ul>
       </nav>
     </aside>
@@ -189,7 +172,7 @@
             <span class="material-icons-outlined">expand_more</span>
           </button>
           <div x-show="open" @click.away="open = false" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-[#e7c98a] z-50 transition-all duration-200" x-transition>
-            <a href="#" @click="open = false" class="block px-5 py-3 text-[#093f62] hover:bg-[#f3e9d2] hover:text-[#C5A46B] font-medium rounded-t-xl transition">Editar perfil</a>
+            <a href="{% url 'profile' %}" @click="open = false" class="block px-5 py-3 text-[#093f62] hover:bg-[#f3e9d2] hover:text-[#C5A46B] font-medium rounded-t-xl transition">Perfil</a>
             {% if user.is_authenticated and user.influencer_profile %}
             <a href="{% url 'influencer_dashboard' %}" @click="open = false" class="block px-5 py-3 text-[#C5A46B] hover:bg-[#f3e9d2] hover:text-[#093f62] font-semibold transition">Panel de Influencer</a>
             {% endif %}

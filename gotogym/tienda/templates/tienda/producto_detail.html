@@ -1,11 +1,36 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% block title %}Detalle Producto{% endblock %}
 {% block content %}
 <div class="container mx-auto py-4 px-2 sm:px-4">
   <div class="flex flex-col md:flex-row gap-6 md:gap-8">
-    <div class="w-full md:w-1/2 flex justify-center items-center bg-white rounded-2xl shadow-xl mb-4 md:mb-0">
-      <div class="flex justify-center items-center w-full max-w-[320px] sm:max-w-[415px] h-[220px] sm:h-[390px]">
-        <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="object-contain max-h-[180px] sm:max-h-[320px] max-w-full"/>
+    <div class="w-full md:w-1/2 flex flex-row gap-4 items-start bg-white rounded-2xl shadow-xl mb-4 md:mb-0 p-4">
+      {% comment %} Galería de miniaturas vertical {% endcomment %}
+      <div class="flex flex-col gap-2 items-center min-w-[48px]">
+        {% for img in producto.images.all %}
+          <button type="button" class="thumbnail-btn border-2 border-transparent rounded-lg overflow-hidden focus:outline-none focus:border-[#093f62]" data-media-type="image" data-src="{{ img.image.url }}">
+            <img src="{{ img.image.url }}" alt="Miniatura" class="w-12 h-12 object-cover"/>
+          </button>
+        {% endfor %}
+        {% if producto.video %}
+          <button type="button" class="thumbnail-btn border-2 border-transparent rounded-lg overflow-hidden focus:outline-none focus:border-[#093f62] flex items-center justify-center bg-gray-100" data-media-type="video" data-src="{{ producto.video.video.url }}">
+            <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+              <polygon points="18,14 34,24 18,34" fill="#60a5fa"/>
+              <rect x="4" y="4" width="40" height="40" rx="8" fill="none" stroke="#60a5fa" stroke-width="3"/>
+            </svg>
+          </button>
+        {% endif %}
+        {% if producto.images.count > 5 %}
+          <div class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded-lg text-gray-600 font-bold text-lg border-2 border-gray-300 select-none">+{{ producto.images.count|add:'-5' }}</div>
+        {% endif %}
+      </div>
+      {% comment %} Imagen/video principal {% endcomment %}
+      <div class="flex-1 flex justify-center items-center w-full max-w-[320px] sm:max-w-[415px] h-[220px] sm:h-[390px] relative" id="mainMediaContainer">
+        {% if producto.images.count > 0 %}
+          <img id="mainMedia" src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300"/>
+        {% elif producto.video %}
+          <video id="mainMedia" src="{{ producto.video.video.url }}" controls class="object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300"></video>
+        {% endif %}
       </div>
     </div>
     <div class="w-full md:w-1/2">
@@ -17,9 +42,15 @@
         <span class="text-sm sm:text-base text-gray-500">({{ producto.reviews_count|default:2 }} Reseñas)</span>
       </div>
       <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-        <span class="text-2xl sm:text-3xl font-bold text-[#093f62]">${{ producto.price|floatformat:0 }}</span>
-        {% if producto.discount %}
-        <span class="text-base sm:text-xl line-through text-gray-400">${{ producto.old_price|default:producto.price|floatformat:0 }}</span>
+        {% if producto.discount and producto.discount > 0 %}
+        <div class="flex flex-col">
+          <span class="text-gray-400 text-xl font-semibold line-through">$ {{ producto.price|floatformat:2|intcomma }}</span>
+          <span class="text-black text-3xl font-bold">$ {{ producto.discounted_price|floatformat:2|intcomma }}</span>
+          <span class="text-gray-500 text-base font-semibold mt-1">Precio final con descuento</span>
+        </div>
+        <span class="ml-2 px-4 py-1 rounded-lg bg-orange-500 text-white text-xl font-bold flex items-center h-fit">-{{ producto.discount|floatformat:0 }}%</span>
+        {% else %}
+        <span class="text-black text-3xl font-bold">$ {{ producto.price|floatformat:2|intcomma }}</span>
         {% endif %}
       </div>
       <p class="mb-4 sm:mb-6 text-gray-700 text-base sm:text-lg leading-relaxed">{{ producto.description }}</p>
@@ -46,6 +77,25 @@
       </form>
     </div>
   </div>
+  <script>
+    // Galería de miniaturas: cambia la imagen/video principal
+    document.addEventListener('DOMContentLoaded', function() {
+      const mainMediaContainer = document.getElementById('mainMediaContainer');
+      const mainMedia = document.getElementById('mainMedia');
+      const thumbBtns = document.querySelectorAll('.thumbnail-btn');
+      thumbBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const type = btn.getAttribute('data-media-type');
+          const src = btn.getAttribute('data-src');
+          if (type === 'image') {
+            mainMediaContainer.innerHTML = `<img id='mainMedia' src='${src}' alt='' class='object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300'/>`;
+          } else if (type === 'video') {
+            mainMediaContainer.innerHTML = `<video id='mainMedia' src='${src}' controls class='object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300'></video>`;
+          }
+        });
+      });
+    });
+  </script>
   <div class="mt-8 sm:mt-10">
     <div class="flex gap-2 border-b-4 border-[#C5A46B] ">
       <button class="px-4 sm:px-6 py-2 sm:py-3 font-bold  text-[#093f62] text-base sm:text-lg bg-white rounded-t-xl">RESEÑAS ({{ producto.reviews_count|default:2 }})</button>

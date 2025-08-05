@@ -29,11 +29,15 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=150, blank=True, null=True)
     last_name = models.CharField(max_length=150, blank=True, null=True)
     age = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True, verbose_name="Estatura (cm)")
+    weight = models.PositiveIntegerField(null=True, blank=True, verbose_name="Peso (kg)")
+    city = models.CharField(max_length=100, null=True, blank=True, verbose_name="Ciudad")
+    phone_number = models.CharField(max_length=20, null=True, blank=True, verbose_name="Número telefónico")
+    image = models.ImageField(upload_to='accounts/users/', null=True, blank=True)
     accepted_terms = models.BooleanField(default=False)
     terms_accepted_at = models.DateTimeField(null=True, blank=True)
     terms_hash = models.CharField(max_length=128, blank=True)
-    show_influencer_modal = models.BooleanField(default=True)  # Nuevo campo
-
+    show_influencer_modal = models.BooleanField(default=True)  
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 

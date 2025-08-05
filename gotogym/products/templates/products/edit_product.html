@@ -1,186 +1,547 @@
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var priceInput = document.getElementById('price');
+        // Formatea el valor inicial si existe
+        if (priceInput && priceInput.value) {
+            let raw = priceInput.value.replace(/[^\d,]/g, '');
+            let parts = raw.split(',');
+            if (parts.length > 2) {
+                raw = parts[0] + ',' + parts.slice(1).join('');
+            }
+            let [ent, dec] = raw.split(',');
+            if (ent) {
+                ent = ent.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+            let formatted = ent || '';
+            if (dec !== undefined) {
+                formatted += ',' + dec;
+            }
+            priceInput.value = formatted;
+        }
+        if (priceInput) {
+            let lastValue = priceInput.value;
+            priceInput.addEventListener('input', function(e) {
+                let cursor = priceInput.selectionStart;
+                let raw = priceInput.value.replace(/[^\d,]/g, '');
+                // Permitir solo un separador decimal
+                let parts = raw.split(',');
+                if (parts.length > 2) {
+                    raw = parts[0] + ',' + parts.slice(1).join('');
+                }
+                // Eliminar ceros a la izquierda
+                raw = raw.replace(/^0+(\d)/, '$1');
+                // Formatear miles solo si hay parte entera
+                let [ent, dec] = raw.split(',');
+                if (ent) {
+                    ent = ent.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                }
+                let formatted = ent || '';
+                if (dec !== undefined) {
+                    formatted += ',' + dec;
+                }
+                // Mantener el cursor lo más cerca posible de la posición original
+                let diff = formatted.length - priceInput.value.length;
+                priceInput.value = formatted;
+                priceInput.setSelectionRange(cursor + diff, cursor + diff);
+                lastValue = formatted;
+            });
+        }
+        // Limpiar el valor del precio antes de enviar el formulario
+        var productForm = document.getElementById('productForm');
+        if (productForm && priceInput) {
+            productForm.addEventListener('submit', function(e) {
+                // Quitar puntos de miles y cambiar coma decimal por punto
+                let clean = priceInput.value.replace(/\./g, '').replace(',', '.');
+                priceInput.value = clean;
+            });
+        }
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const priceInput = document.getElementById('price');
+        const discountInput = document.querySelector('input[name="discount"]');
+        const finalPriceDisplay = document.getElementById('finalPriceDisplay');
+        function formatNumber(num) {
+            // Formatea número a 2 decimales y miles con punto, decimales con coma
+            let parts = Number(num).toFixed(2).split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return parts.join(',');
+        }
+        function updateDiscountedPrice() {
+            let price = priceInput.value.replace(/\./g, '').replace(',', '.');
+            let discount = discountInput ? discountInput.value : '';
+            let priceNum = parseFloat(price) || 0;
+            let discountNum = parseFloat(discount) || 0;
+            let discounted = priceNum;
+            if (discountNum > 0) {
+                discounted = priceNum * (1 - discountNum / 100);
+            }
+            
+            let html = '';
+            if (priceNum > 0 && discountNum > 0) {
+                html += `<div class="flex flex-col">`;
+                html += `<span class="text-gray-400 text-xl font-semibold line-through">$ ${formatNumber(priceNum)}</span>`;
+                html += `<span class="text-black text-3xl font-bold">$ ${formatNumber(discounted)}</span>`;
+                html += `</div>`;
+                html += `<span class="ml-2 px-4 py-1 rounded-lg bg-orange-500 text-white text-xl font-bold flex items-center h-fit">-${Math.round(discountNum)}%</span>`;
+            } else if (priceNum > 0) {
+                html += `<span class="text-black text-3xl font-bold">$ ${formatNumber(priceNum)}</span>`;
+            }
+            finalPriceDisplay.innerHTML = html;
+        }
+        if (priceInput && discountInput && finalPriceDisplay) {
+            priceInput.addEventListener('input', updateDiscountedPrice);
+            discountInput.addEventListener('input', updateDiscountedPrice);
+            updateDiscountedPrice();
+        }
+    });
+    </script>
 {% extends '_base_dasboard.html' %}
-{% load widget_tweaks %}
+{% load widget_tweaks filters_custom %}
+{% load humanize %}
 {% block content %}
-<div class="mx-auto bg-white/95 p-8 rounded-3xl shadow-2xl border border-gray-200 backdrop-blur-lg">
-  <h2 class="text-4xl font-extrabold mb-1 text-[#093f62] flex items-center gap-3 drop-shadow-sm">
-    <span class="material-icons-outlined text-5xl text-[#C5A46B]">edit</span>
-    Editar Producto
-  </h2>
-  <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-10">
-    {% csrf_token %}
-    <!-- Columna 1 -->
-    <div class="space-y-7 md:col-span-1">
-      <div>
-        <label for="{{ form.name.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Nombre<span class="text-red-500">*</span></label>
-        {% render_field form.name class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition placeholder-gray-400 text-gray-800" %}
-        {% for error in form.name.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div>
-        <label for="{{ form.category.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Categoria<span class="text-red-500">*</span></label>
-        <div class="relative">
-          {% render_field form.category class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800 appearance-none pr-10" %}
-          <span class="pointer-events-none absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 material-icons-outlined">expand_more</span>
-        </div>
-        {% for error in form.category.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div>
-        <label for="{{ form.stock.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Stock<span class="text-red-500">*</span></label>
-        {% render_field form.stock class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-        {% for error in form.stock.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div class="flex gap-4 items-end">
-        <div class="w-1/2 flex items-center">
-          <label for="{{ form.featured.id_for_label }}" class="flex items-center gap-3 cursor-pointer select-none whitespace-nowrap">
-            <span class="relative">
-              {% render_field form.featured class="sr-only peer" %}
-              <span class="w-11 h-6 bg-gray-200 rounded-full shadow-inner peer-checked:bg-[#C5A46B] transition-colors block"></span>
-              <span class="absolute left-0 top-0 w-6 h-6 bg-white border border-gray-300 rounded-full shadow peer-checked:translate-x-5 transition-transform"></span>
-            </span>
-            <span class="text-base font-semibold text-gray-700 whitespace-nowrap">Destacar Producto</span>
-          </label>
-          {% for error in form.featured.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-        </div>
-      </div>
-    </div>
-    <!-- Columna 2 -->
-    <div class="space-y-7 md:col-span-1">
-      <div>
-        <label for="{{ form.brand.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Marca</label>
-        <div class="relative">
-          {% render_field form.brand class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800 appearance-none pr-10" %}
-          <span class="pointer-events-none absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 material-icons-outlined">expand_more</span>
-        </div>
-        {% for error in form.brand.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div>
-        <label for="{{ form.description.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Descripción</label>
-        {% render_field form.description class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800 min-h-[222px] max-h-[120px] resize-none align-bottom" %}
-        {% for error in form.description.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-    </div>
-    <!-- Columna 3 -->
-    <div class="space-y-7 md:col-span-1">
-      <div class="flex gap-4">
-        <div class="w-1/2">
-          <label for="{{ form.discount.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Descuento</label>
-          {% render_field form.discount class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-          {% for error in form.discount.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-        </div>
-        <div class="w-1/2">
-          <label for="{{ form.price.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Precio<span class="text-red-500">*</span></label>
-          {% render_field form.price type="text" class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46L] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-          {% for error in form.price.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-        </div>
-      </div>
-      <div class="relative flex flex-col items-center justify-center bg-gray-100 border border-dashed border-gray-300 rounded-xl h-[250px] overflow-hidden shadow-inner cursor-pointer group transition-all">
-        <img id="preview-img" src="{% if product.image %}{{ product.image.url }}{% endif %}" class="h-[260px] w-64 object-contain mx-auto rounded-xl shadow {% if not product.image %}hidden{% endif %}"/>
-        <button type="button" id="removeImageBtn" class="absolute top-2 right-2 bg-white/80 hover:bg-red-100 text-red-500 rounded-full p-1 shadow transition z-20 {% if not product.image %}hidden{% endif %}" title="Eliminar imagen">
-          <span class="material-icons-outlined text-lg">close</span>
-        </button>
-        <span id="placeholder-icon" class="text-gray-400 material-icons-outlined text-7xl group-hover:text-[#C5A46B] transition {% if product.image %}hidden{% endif %}">image</span>
-        <span id="placeholder-text" class="text-gray-500 mt-4 text-base group-hover:text-[#C5A46B] transition px-2 text-center {% if product.image %}hidden{% endif %}">Haz clic aquí para subir una imagen</span>
-        <input type="file" id="image-upload-input" name="image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" />
-      </div>
-      <input type="hidden" name="image-clear" id="image-clear-flag" value="">
-      {% for error in form.image.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-    </div>
-    <div class="md:col-span-3 flex justify-end gap-3 pt-4">
-      <a href="{% url 'products:list_product' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
-        <span class="material-icons-outlined">arrow_back</span> Cancelar
-      </a>
-      <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#093f62] text-white font-semibold shadow-md hover:bg-[#C5A46B] hover:text-[#093f62] transition">
-        <span class="material-icons-outlined">save</span> Guardar
-      </button>
-    </div>
-  </form>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const previewImg = document.getElementById('preview-img');
-  const imageInput = document.getElementById('image-upload-input');
-  const removeBtn = document.getElementById('removeImageBtn');
-  const clearFlag = document.getElementById('image-clear-flag');
-  const placeholderIcon = document.getElementById('placeholder-icon');
-  const placeholderText = document.getElementById('placeholder-text');
-  const deleteImageUrl = "{% url 'products:delete_product_image' product.pk %}";
-
-  imageInput.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        previewImg.src = evt.target.result;
-        previewImg.classList.remove('hidden');
-        removeBtn.classList.remove('hidden');
-        placeholderIcon.classList.add('hidden');
-        placeholderText.classList.add('hidden');
-        clearFlag.value = '';
-      };
-      reader.readAsDataURL(file);
-    } else {
-      previewImg.src = '';
-      previewImg.classList.add('hidden');
-      removeBtn.classList.add('hidden');
-      placeholderIcon.classList.remove('hidden');
-      placeholderText.classList.remove('hidden');
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
     }
-  });
-
-  removeBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    fetch(deleteImageUrl, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-      }
-    }).then(res => res.json()).then(data => {
-      if (data.success) {
-        previewImg.src = '';
-        previewImg.classList.add('hidden');
-        removeBtn.classList.add('hidden');
-        placeholderIcon.classList.remove('hidden');
-        placeholderText.classList.remove('hidden');
-        clearFlag.value = '1';
-        imageInput.value = '';
-        showMessage('Imagen eliminada correctamente.', 'success');
-      } else {
-        showMessage('Error al eliminar la imagen.', 'error');
-      }
-    }).catch(() => {
-      showMessage('Error de red al eliminar la imagen.', 'error');
-    });
-  });
-
-  function showMessage(msg, type) {
-    let msgDiv = document.getElementById('image-msg');
-    if (!msgDiv) {
-      msgDiv = document.createElement('div');
-      msgDiv.id = 'image-msg';
-      msgDiv.className = 'mt-2 text-sm';
-      previewImg.parentNode.parentNode.appendChild(msgDiv);
+    .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-    msgDiv.textContent = msg;
-    msgDiv.className = 'mt-2 text-sm ' + (type === 'success' ? 'text-green-600' : 'text-red-600');
-    setTimeout(() => { msgDiv.textContent = ''; }, 3000);
-  }
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .input-focus {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .input-focus:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .form-section {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e0e7ff 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 24px rgba(99,102,241,0.07);
+    }
+    
+    .file-upload-area {
+        background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+        border: 2px dashed #a5b4fc;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        box-shadow: 0 2px 12px rgba(99,102,241,0.07);
+        position: relative;
+    }
+    .file-upload-area:hover {
+        border-color: #6366f1;
+        box-shadow: 0 4px 24px rgba(99,102,241,0.12);
+    }
+    .file-upload-area svg {
+        transition: transform 0.3s;
+    }
+    .file-upload-area:active svg,
+    .file-upload-area:focus svg,
+    .file-upload-area:hover svg {
+        transform: scale(1.1);
+    }
+    .file-upload-area .remove-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 9999px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(239,68,68,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+    .file-upload-area .remove-btn:hover {
+        background: #b91c1c;
+        box-shadow: 0 4px 16px rgba(239,68,68,0.25);
+    }
+    .file-upload-area input[type="file"] {
+        display: none;
+    }
+</style>
+<body class="gradient-bg min-h-screen py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="glass-effect rounded-3xl shadow-2xl p-10">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3 flex items-center justify-center gap-4">
+                    Editar Producto
+                    <span class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </span>
+                </h1>
+                <p class="text-gray-600 text-lg">Modifica los campos y guarda los cambios</p>
+            </div>
+            <form id="productForm" class="space-y-8" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mr-3"></div>
+                        INFORMACIÓN BÁSICA
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">Nombre del Producto *</label>
+                            {{ form.name|add_class:'input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm' }}
+                        </div>
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">Marca *</label>
+                            {{ form.brand|add_class:'input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm' }}
+                        </div>
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">Categoría *</label>
+                            {{ form.category|add_class:'input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mr-3"></div>
+                        INFORMACIÓN DE PRECIOS
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">Precio ($) *</label>
+                            {% with price_value=form.price.value %}
+                                <input type="text" name="price" id="price" required class="input-focus w-full pl-8 pr-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm" placeholder="0,00" value="{{ price_value|default_if_none:''|floatformat:2|intcomma_custom }}">
+                            {% endwith %}
+                            <div id="finalPriceDisplay" class="mt-2 flex items-center gap-3">
+                                {% if form.price.value and form.discount.value and form.discount.value != '0' and form.discount.value != 0 %}
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-400 text-xl font-semibold line-through">$ {{ form.price.value|floatformat:2|intcomma }}</span>
+                                        <span class="text-black text-3xl font-bold">$ {{ form.instance.discounted_price|floatformat:2|intcomma }}</span>
+                                    </div>
+                                    <span class="ml-2 px-4 py-1 rounded-lg bg-orange-500 text-white text-xl font-bold flex items-center h-fit">-{{ form.discount.value|floatformat:0 }}%</span>
+                                {% elif form.price.value %}
+                                    <span class="text-black text-3xl font-bold">$ {{ form.price.value|floatformat:2|intcomma }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">Stock *</label>
+                            {{ form.stock|add_class:'input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm' }}
+                        </div>
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">Descuento (%)</label>
+                            {{ form.discount|add_class:'input-focus w-full px-5 pr-8 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mr-3"></div>
+                        DETALLES ADICIONALES
+                    </h3>
+                    <div class="grid md:grid-cols-4 gap-6 items-start">
+                        <div class="flex items-center space-x-4 pt-8">
+                            <div class="flex items-center space-x-3">
+                                <label for="featured" class="flex items-center cursor-pointer select-none relative">
+                                    <span class="mr-3 text-sm font-semibold text-gray-700 flex items-center">Destacar Producto</span>
+                                    <input type="checkbox" name="featured" id="featured" class="peer opacity-0 absolute h-8 w-14 z-10 cursor-pointer" {% if form.featured.value %}checked{% endif %} />
+                                    <div class="w-14 h-8 bg-gray-200 rounded-full relative transition-all duration-300 shadow-inner peer-checked:bg-gradient-to-r peer-checked:from-yellow-400 peer-checked:to-yellow-600">
+                                        <span class="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow border border-gray-300 flex items-center justify-center transition-all duration-300" style="transition-property: left, transform;" id="featured-switch-circle"></span>
+                                    </div>
+                                    <style>
+                                    /* Mueve el círculo a la derecha cuando el checkbox está checked */
+                                    #featured:checked + div > #featured-switch-circle {
+                                        transform: translateX(24px);
+                                    }
+                                    </style>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">Descripción del Producto</label>
+                            {{ form.description|add_class:'input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none bg-white/80 backdrop-blur-sm' }}
+                        </div>
+                    </div>
+                </div>
+                <!-- Fila 4: Imágenes del Producto -->
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full mr-3"></div>
+                        Galería de Imágenes
+                        <span class="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Requerido</span>
+                    </h3>
+                    <div id="imagePreview" class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {% for img in product.images.all %}
+                        <div class="image-preview relative bg-white rounded-2xl overflow-hidden aspect-square shadow-lg border-2 border-gray-100" data-image-id="{{ img.id }}">
+                            <img src="{{ img.image.url }}" alt="Preview" class="w-full h-full object-cover">
+                            <button type="button" class="remove-btn opacity-100 transition-opacity duration-300 absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-red-500 text-white text-xl font-bold shadow-lg hover:bg-red-700 focus:outline-none" style="z-index:10;" onclick="removeImageFromGallery(this, '{{ img.id }}')">×</button>
+                        </div>
+                        {% endfor %}
+                        {% if product.images.count < 7 %}
+                        <div class="file-upload-area rounded-2xl p-6 text-center cursor-pointer aspect-square flex flex-col justify-center items-center group" id="imageUploadArea">
+                            <div class="mb-3 group-hover:scale-110 transition-transform duration-300">
+                                <svg class="mx-auto h-10 w-10 text-indigo-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-700 mb-1">Arrastra imágenes</p>
+                            <p class="text-xs text-gray-500 mb-3">o haz clic para seleccionar</p>
+                            <input type="file" id="imageInput" name="image" multiple accept="image/*" class="hidden" max="{{ max_images_left }}">
+                            <button type="button" onclick="document.getElementById('imageInput').click()" 
+                                    class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                Seleccionar
+                            </button>
+                            <script>
+        
+                            function removeImageFromGallery(btn, imageId) {
+                                // Elimina el div de la imagen
+                                const previewDiv = btn.closest('.image-preview');
+                                if (previewDiv) previewDiv.remove();
+                                // Crea o actualiza un input hidden para marcar la imagen como eliminada
+                                let deletedInput = document.getElementById('deletedImagesInput');
+                                if (!deletedInput) {
+                                    deletedInput = document.createElement('input');
+                                    deletedInput.type = 'hidden';
+                                    deletedInput.name = 'deleted_images';
+                                    deletedInput.id = 'deletedImagesInput';
+                                    deletedInput.value = imageId;
+                                    document.getElementById('productForm').appendChild(deletedInput);
+                                } else {
+                                    // Agrega el id si no está ya
+                                    let ids = deletedInput.value ? deletedInput.value.split(',') : [];
+                                    if (!ids.includes(imageId)) {
+                                        ids.push(imageId);
+                                        deletedInput.value = ids.join(',');
+                                    }
+                                }
+                                // Actualiza el área de carga para permitir nuevas imágenes
+                                if (typeof updateImageUploadArea === 'function') updateImageUploadArea();}
+                                    document.getElementById('imageUploadArea').addEventListener('click', function(e) {
+                                        if (e.target.tagName !== 'BUTTON') {
+                                        document.getElementById('imageInput').click();
+                                        }
+                                    });
+                            </script>
+                        </div>
+                        
+                    {% endif %}
+                    </div>
+                    <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <div class="flex items-center text-sm text-blue-700">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span><strong>Formatos soportados:</strong> JPG, PNG, GIF • <strong>Máximo:</strong> 7 imágenes • <strong>Tamaño recomendado:</strong> 1200x1200px</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fila 5: Video del Producto -->
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full mr-3"></div>
+                        Video Promocional
+                        <span class="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Opcional</span>
+                    </h3>
+                    
+                    <div class="file-upload-area rounded-2xl p-10 text-center cursor-pointer group" id="videoUploadArea">
+                        {% if product.video %}
+                        <div class="mb-6 group-hover:scale-110 transition-transform duration-300 relative">
+                            <video src="{{ product.video.video.url }}" controls class="w-full max-h-80 object-cover">
+                                Tu navegador no soporta el elemento video.
+                            </video>
+                            <button type="button" id="removeVideoBtn" class="remove-btn opacity-100 transition-opacity duration-300 absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-red-500 text-white text-xl font-bold shadow-lg hover:bg-red-700 focus:outline-none" style="z-index:10;">×</button>
+                        </div>
+                        {% else %}
+                        <div class="mb-6 group-hover:scale-110 transition-transform duration-300 flex flex-col items-center justify-center" style="height: 180px;">
+                            <svg class="mx-auto h-16 w-16 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-xl font-semibold text-gray-700 mb-2 mt-4">Arrastra tu video aquí</p>
+                            <p class="text-sm text-gray-500 mb-6">o haz clic para seleccionar desde tu dispositivo</p>
+                            <input type="file" id="videoInput" name="video" accept="video/*" class="hidden">
+                            <button type="button" onclick="document.getElementById('videoInput').click()" 
+                                    class="bg-gradient-to-r from-red-500 to-pink-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                Seleccionar Video
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mt-4 p-4 bg-red-50 rounded-xl border border-red-200">
+                        <div class="flex items-center text-sm text-red-700">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span><strong>Formatos soportados:</strong> MP4, MOV, AVI, WebM • <strong>Tamaño máximo:</strong> 70MB • <strong>Duración recomendada:</strong> 30-60 segundos</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Botones de Acción -->
+                <div class="flex flex-col sm:flex-row gap-6 pt-8">
+                    <button type="submit" 
+                            class="btn-primary flex-1 text-white py-4 px-8 rounded-xl font-bold text-lg focus:ring-4 focus:ring-indigo-300 focus:ring-offset-2 flex items-center justify-center space-x-3 bg-gradient-to-r from-indigo-500 to-purple-600 border-2 border-indigo-600 shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span>Guardar Cambios</span>
+                    </button>
+                    <a href="{% url 'products:list_product' %}" class="btn-secondary flex-1 text-white py-4 px-8 rounded-xl font-bold text-lg flex items-center justify-center space-x-3 bg-gradient-to-r from-red-500 to-pink-600 border-2 border-red-500 shadow-lg hover:from-red-600 hover:to-pink-700 transition-all duration-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Cancelar</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Previsualización de nuevas imágenes seleccionadas
+        const imageInput = document.getElementById('imageInput');
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                const imagePreview = document.getElementById('imagePreview');
+                let currentCount = imagePreview.querySelectorAll('.image-preview').length;
+                let maxToAdd = Math.max(0, 7 - currentCount);
+                files.slice(0, maxToAdd).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const div = document.createElement('div');
+                        div.className = 'image-preview relative bg-white rounded-2xl overflow-hidden aspect-square shadow-lg border-2 border-gray-100';
+                        div.innerHTML = `
+                            <img src="${ev.target.result}" alt="Preview" class="w-full h-full object-cover">
+                            <button type="button" class="remove-btn opacity-100 transition-opacity duration-300 absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-red-500 text-white text-xl font-bold shadow-lg hover:bg-red-700 focus:outline-none" style="z-index:10;" onclick="this.parentNode.remove(); updateImageUploadArea();">×</button>
+                        `;
+                        
+                        const uploadArea = document.getElementById('imageUploadArea');
+                        if (uploadArea) {
+                            imagePreview.insertBefore(div, uploadArea);
+                        } else {
+                            imagePreview.appendChild(div);
+                        }
+                        updateImageUploadArea();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+            function updateImageUploadArea() {
+                const imagePreview = document.getElementById('imagePreview');
+                const uploadArea = document.getElementById('imageUploadArea');
+                if (!uploadArea) return;
+                if (imagePreview.querySelectorAll('.image-preview').length >= 7) {
+                    uploadArea.style.display = 'none';
+                } else {
+                    uploadArea.style.display = '';
+                }
+            }
+            updateImageUploadArea();
+        }
+        const videoInput = document.getElementById('videoInput');
+        if (videoInput) {
+            function showVideoSizeError() {
+        const videoPreview = document.getElementById('videoUploadArea');
+        videoPreview.innerHTML = `
+            <div class='mb-6 group-hover:scale-110 transition-transform duration-300'>
+                <svg class='mx-auto h-16 w-16 text-red-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'></path>
+                </svg>
+            </div>
+            <p class='text-xl font-semibold text-red-600 mb-2'>El archivo excede el tamaño máximo permitido (70 MB).</p>
+            <p class='text-sm text-gray-500 mb-6'>Por favor selecciona un video menor a 70 MB.</p>
+            <input type='file' id='videoInput' name='video' accept='video/*' class='hidden'>
+            <button type='button' onclick='document.getElementById("videoInput").click()' class='bg-gradient-to-r from-red-500 to-pink-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg'>Seleccionar Video</button>
+        `;
+        const newVideoInput = document.getElementById('videoInput');
+        if (newVideoInput) {
+            bindVideoInputChange(newVideoInput);
+        }
+    }
+            function bindVideoInputChange(input) {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (file.size > 70 * 1024 * 1024) {
+                    showVideoSizeError();
+                    return;
+                }
+                        const reader = new FileReader();
+                        const videoPreview = document.getElementById('videoUploadArea');
+                        videoPreview.innerHTML = `
+                            <div class='relative bg-white rounded-2xl overflow-hidden shadow-xl border-2 border-gray-100 mt-6 flex flex-col items-center'>
+                                <div id='videoProgressBarContainer' class='w-full px-4 pt-4'>
+                                    <div class='w-full bg-gray-200 rounded-full h-4'>
+                                        <div id='videoProgressBar' class='bg-gradient-to-r from-red-500 to-pink-500 h-4 rounded-full transition-all duration-300' style='width:0%'></div>
+                                    </div>
+                                    <div id='videoProgressText' class='text-xs text-gray-600 mt-1 text-right'>0%</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        reader.onprogress = function(ev) {
+                            if (ev.lengthComputable) {
+                                const percent = Math.round((ev.loaded / ev.total) * 100);
+                                document.getElementById('videoProgressBar').style.width = percent + '%';
+                                document.getElementById('videoProgressText').textContent = percent + '%';
+                            }
+                        };
+                        reader.onloadend = function(ev) {
+                           
+                            document.getElementById('videoProgressBar').style.width = '100%';
+                            document.getElementById('videoProgressText').textContent = '100%';
+                        };
+                        reader.onload = function(ev) {
+                            videoPreview.innerHTML = `
+                                <div class='relative bg-white rounded-2xl overflow-hidden shadow-xl border-2 border-gray-100 mt-6'>
+                                    <video src='${ev.target.result}' controls class='w-full max-h-80 object-cover'>Tu navegador no soporta el elemento video.</video>
+                                    <button type='button' id='removeVideoBtn' class='remove-btn opacity-100 transition-opacity duration-300 absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-red-500 text-white text-xl font-bold shadow-lg hover:bg-red-700 focus:outline-none' style='z-index:10;'>×</button>
+                                    <div class='p-4 bg-gradient-to-r from-red-50 to-pink-50'>
+                                        <div class='flex items-center space-x-3'>
+                                            <div class='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
+                                            <p class='text-sm font-semibold text-gray-700'>${file.name}</p>
+                                            <span class='text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full'>${(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            document.getElementById('removeVideoBtn').onclick = function() {
+                               
+                                const videoPreview = document.getElementById('videoUploadArea');
+                                videoPreview.innerHTML = `
+                                    <div class='mb-6 group-hover:scale-110 transition-transform duration-300'>
+                                        <svg class='mx-auto h-16 w-16 text-red-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z'></path>
+                                        </svg>
+                                    </div>
+                                    <p class='text-xl font-semibold text-gray-700 mb-2'>Arrastra tu video aquí</p>
+                                    <p class='text-sm text-gray-500 mb-6'>o haz clic para seleccionar desde tu dispositivo</p>
+                                    <input type='file' id='videoInput' name='video' accept='video/*' class='hidden'>
+                                    <button type='button' onclick='document.getElementById("videoInput").click()' class='bg-gradient-to-r from-red-500 to-pink-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg'>Seleccionar Video</button>
+                                `;
+                               
+                                const newVideoInput = document.getElementById('videoInput');
+                                if (newVideoInput) {
+                                    bindVideoInputChange(newVideoInput);
+                                }
+                            };
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            bindVideoInputChange(videoInput);
+        }
+    </script>
 
-  // Formatear el campo de precio con separador de miles y mantener el cursor
-  const priceInput = document.getElementById('{{ form.price.id_for_label }}');
-  if (priceInput) {
-    priceInput.setAttribute('inputmode', 'numeric');
-    priceInput.addEventListener('input', function(e) {
-      const selectionStart = priceInput.selectionStart;
-      const oldLength = priceInput.value.length;
-      let value = priceInput.value.replace(/\D/g, '');
-      if (value) {
-        value = parseInt(value, 10).toLocaleString('es-CO');
-      }
-      priceInput.value = value;
-      // Ajustar la posición del cursor
-      const newLength = value.length;
-      priceInput.setSelectionRange(newLength, newLength);
-    });
-  }
-});
-</script>
 {% endblock %}

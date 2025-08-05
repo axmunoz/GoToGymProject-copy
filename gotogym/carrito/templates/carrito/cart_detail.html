@@ -3,6 +3,19 @@
 {% load humanize %}
 {% block title %}Carrito de Compras{% endblock %}
 {% block content %}
+{% if messages %}
+  <div class="mb-6">
+    {% for message in messages %}
+      <div class="px-4 py-3 rounded-lg mb-2 font-semibold text-center
+        {% if message.tags == 'success' %}bg-green-100 text-green-800 border border-green-300
+        {% elif message.tags == 'error' %}bg-red-100 text-red-800 border border-red-300
+        {% elif message.tags == 'info' %}bg-blue-100 text-blue-800 border border-blue-300
+        {% else %}bg-gray-100 text-gray-800 border border-gray-300{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
 <div class="container mx-auto py-10 px-2 sm:px-4">
   <div class="flex flex-col lg:flex-row gap-10">
     <div class="w-full lg:w-2/3">
@@ -12,23 +25,52 @@
       </h2>
       <div class="bg-white rounded-2xl shadow-lg p-6">
         {% for item in items %}
-        <div class="flex flex-col sm:flex-row items-center justify-between border-b border-gray-200 py-6 last:border-b-0 gap-6 hover:bg-gray-50 transition-all">
-          <div class="flex items-center gap-5 w-full sm:w-auto">
-            <img src="{{ item.producto.image.url }}" alt="{{ item.producto.name }}" class="w-20 h-20 object-cover rounded-lg shadow"/>
-            <div>
-              <div class="font-bold text-lg text-gray-800">{{ item.producto.name }}</div>
-              <div class="text-gray-500 text-sm mb-2">{{ item.producto.description|truncatechars:40 }}</div>
-              <span class="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Cantidad: {{ item.cantidad }}</span>
-            </div>
+        <div class="bg-white rounded-xl shadow flex flex-col sm:flex-row items-center mb-6 px-3 py-4 gap-3 sm:gap-6">
+          <!-- Imagen -->
+          <div class="flex-shrink-0 w-20 h-20 flex items-center justify-center mb-2 sm:mb-0">
+            {% if item.producto.images.all %}
+              {% with img=item.producto.images.all.0 %}
+                <img src="{{ img.image.url }}" alt="{{ item.producto.name }}" class="w-20 h-20 object-cover rounded-lg shadow"/>
+              {% endwith %}
+            {% else %}
+                <div class="w-20 h-20 bg-gray-200 flex items-center justify-center rounded-lg shadow">
+                  <i class="fas fa-image text-gray-400 text-3xl"></i>
+                </div>
+            {% endif %}
           </div>
-          <form method="post" action="{% url 'carrito:update_cart' item.producto.id %}" class="flex items-center gap-2">
-            {% csrf_token %}
-            <button type="submit" name="accion" value="restar" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-full text-lg font-bold">-</button>
-            <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1" class="w-14 text-center border rounded-lg py-2"/>
-            <button type="submit" name="accion" value="sumar" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-full text-lg font-bold">+</button>
-          </form>
-          <div class="font-bold text-xl text-blue-600">$ {{ item.subtotal|intcomma }}</div>
-          <a href="{% url 'carrito:remove_from_cart' item.producto.id %}" class="text-gray-400 hover:text-red-500 text-2xl transition-all" title="Eliminar"><i class="fas fa-trash-alt"></i></a>
+          <!-- Info producto -->
+          <div class="flex flex-col justify-center w-full sm:min-w-[12rem] sm:max-w-[16rem] flex-1 sm:mr-6 mb-2 sm:mb-0">
+            <div class="font-bold text-lg text-gray-800 leading-tight">{{ item.producto.name }}</div>
+            <div class="text-gray-500 text-sm mb-1 truncate">{{ item.producto.description|truncatechars:40 }}</div>
+            <span class="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Cantidad: {{ item.cantidad }}</span>
+          </div>
+          <!-- Cantidad -->
+          <div class="flex items-center justify-center w-full sm:min-w-[6.5rem] sm:mr-10 mb-2 sm:mb-0">
+            <form method="post" action="{% url 'carrito:update_cart' item.producto.id %}" class="flex items-center gap-1">
+              {% csrf_token %}
+              <button type="submit" name="accion" value="restar" class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-base font-bold leading-none">-</button>
+              <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1" class="w-10 text-center border rounded-lg py-1 text-base font-semibold mx-1"/>
+              <button type="submit" name="accion" value="sumar" class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-base font-bold leading-none">+</button>
+            </form>
+          </div>
+          <!-- Precios y descuento -->
+          <div class="flex flex-row sm:flex-col items-center sm:items-end w-full sm:min-w-[11rem] sm:max-w-[14rem] bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 mb-2 sm:mb-0">
+            <div class="flex flex-col items-end w-full">
+              {% if item.producto.discount and item.producto.discount > 0 %}
+                <span class="text-gray-400 text-sm font-semibold line-through leading-tight">$ {{ item.subtotal_original|floatformat:2|intcomma }}</span>
+                <span class="text-blue-600 text-base font-bold leading-tight">$ {{ item.subtotal|floatformat:2|intcomma }}</span>
+              {% else %}
+                <span class="text-blue-600 text-base font-bold leading-tight">$ {{ item.subtotal|floatformat:2|intcomma }}</span>
+              {% endif %}
+            </div>
+            {% if item.producto.discount and item.producto.discount > 0 %}
+              <span class="ml-2 sm:ml-0 mt-0 sm:mt-2 px-2 py-1 rounded bg-orange-500 text-white text-xs font-bold flex items-center whitespace-nowrap">-{{ item.producto.discount|floatformat:0 }}%</span>
+            {% endif %}
+          </div>
+          <!-- Eliminar -->
+          <div class="flex-shrink-0 flex items-center justify-center w-full sm:w-10 mt-2 sm:mt-0">
+            <a href="{% url 'carrito:remove_from_cart' item.producto.id %}" class="text-gray-400 hover:text-red-500 text-2xl transition-all" title="Eliminar"><i class="fas fa-trash-alt"></i></a>
+          </div>
         </div>
         {% empty %}
         <div class="text-center text-gray-500 py-10 text-lg">El carrito está vacío.</div>
@@ -44,12 +86,22 @@
         <h3 class="font-extrabold text-xl mb-6 flex items-center gap-2"><i class="fas fa-receipt"></i> Resumen</h3>
         <div class="flex justify-between mb-4 text-gray-700 font-semibold">
           <span>Productos ({{ num_items }})</span>
-          <span>$ {{ total|intcomma }}</span>
+          <span>$ {{ total_original|floatformat:2|intcomma }}</span>
+        </div>
+        {% if ahorro_total > 0 %}
+        <div class="flex justify-between mb-4 text-green-700 font-semibold">
+          <span>Descuento total aplicado</span>
+          <span>- $ {{ ahorro_total|floatformat:2|intcomma }}</span>
+        </div>
+        {% endif %}
+        <div class="flex justify-between mb-4 text-blue-700 font-bold">
+          <span>Total antes de envío</span>
+          <span>$ {{ total_sin_envio|floatformat:2|intcomma }}</span>
         </div>
         <div class="mb-4">
           <span class="block mb-2 font-semibold text-gray-600">Envío</span>
           <select class="w-full border rounded px-2 py-2 bg-white shadow">
-            <option>Envío estándar - $ {{ shipping|intcomma }}</option>
+          <option>Envío estándar - $ {{ shipping|floatformat:2|intcomma }}</option>
           </select>
         </div>
         <div class="mb-4">
@@ -61,16 +113,56 @@
         </div>
         <div class="flex justify-between font-extrabold text-xl mt-6 mb-6">
           <span>Total a pagar</span>
-          <span>$ {{ total_price|intcomma }}</span>
+          <span>$ {{ total_price|floatformat:2|intcomma }}</span>
         </div>
         {% if num_items > 0 %}
-        <form method="post" action="{% url 'carrito:checkout' %}">
-          {% csrf_token %}
-          <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-400 text-white py-4 rounded-xl font-extrabold text-lg flex items-center justify-center gap-3 shadow-lg hover:from-blue-700 hover:to-cyan-500 transition-all">
-            <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.22.7/mercadopago/logo__large_plus.png" alt="MercadoPago" class="h-8 inline-block"/>
-            Pagar con MercadoPago
-          </button>
-        </form>
+        <button id="mp-checkout-btn" type="button" class="w-full bg-gradient-to-r from-blue-600 to-cyan-400 text-white py-4 rounded-xl font-extrabold text-lg flex items-center justify-center gap-3 shadow-lg hover:from-blue-700 hover:to-cyan-500 transition-all">
+          <i class="fas fa-hand-holding-usd text-2xl"></i>
+          Pagar con MercadoPago
+        </button>
+        <script src="https://sdk.mercadopago.com/js/v2"></script>
+        <script>
+        document.getElementById('mp-checkout-btn').addEventListener('click', async function() {
+          const btn = this;
+          btn.disabled = true;
+          btn.textContent = 'Cargando...';
+          try {
+            // Llama a tu endpoint backend para crear preferencia
+            // Asegura que el precio se envía con punto decimal
+            let unitPrice = '{{ total_price|floatformat:2 }}'.replace(',', '.');
+            const resp = await fetch("{% url 'crear_preferencia' %}", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+              },
+              body: 'title=Pago+carrito&quantity=1&unit_price=' + encodeURIComponent(unitPrice)
+            });
+            const data = await resp.json();
+            if (data.id) {
+              const mp = new MercadoPago('{{ mp_public_key }}', {
+                locale: 'es-CO'
+              });
+              mp.checkout({
+                preference: { id: data.id },
+                autoOpen: true,
+              });
+            } else {
+              // Mostrar error detallado de MercadoPago
+              let msg = 'No se pudo iniciar el pago.\n';
+              if (data.error) msg += 'Error: ' + data.error + '\n';
+              if (data.mp_response) msg += 'Detalle: ' + JSON.stringify(data.mp_response);
+              alert(msg);
+              console.error('MercadoPago error:', data);
+            }
+          } catch (e) {
+            alert('Error al conectar con MercadoPago.');
+            console.error(e);
+          }
+          btn.disabled = false;
+          btn.textContent = 'Pagar con MercadoPago';
+        });
+        </script>
         {% else %}
         <div class="text-center text-gray-400 py-6 font-semibold">Agrega productos al carrito para pagar con MercadoPago.</div>
         {% endif %}

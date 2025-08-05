@@ -1,137 +1,758 @@
 {% extends '_base_dasboard.html' %}
 {% load widget_tweaks %}
 {% block content %}
-<div class=" mx-auto bg-white/95 p-8 rounded-3xl shadow-2xl border border-gray-200 backdrop-blur-lg">
-  <h2 class="text-4xl font-extrabold mb-1 text-[#093f62] flex items-center gap-3 drop-shadow-sm">
-    <span class="material-icons-outlined text-5xl text-[#C5A46B]">add_box</span>
-    Añadir Producto
-  </h2>
-  <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-10">
-    {% csrf_token %}
-    <!-- Columna 1 -->
-    <div class="space-y-7 md:col-span-1">
-      <div>
-        <label for="{{ form.name.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Nombre<span class="text-red-500">*</span></label>
-        {% render_field form.name class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition placeholder-gray-400 text-gray-800" %}
-        {% for error in form.name.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div>
-        <label for="{{ form.category.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Categoria<span class="text-red-500">*</span></label>
-        {% render_field form.category class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-        {% for error in form.category.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div>
-        <label for="{{ form.stock.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">{{ form.stock.label }}<span class="text-red-500">*</span></label>
-        {% render_field form.stock class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-        {% for error in form.stock.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div class="flex gap-4 items-end">
-        <div class="w-1/2 flex items-center">
-          <label for="{{ form.featured.id_for_label }}" class="flex items-center gap-3 cursor-pointer select-none whitespace-nowrap">
-            <span class="relative">
-              {% render_field form.featured class="sr-only peer" %}
-              <span class="w-11 h-6 bg-gray-200 rounded-full shadow-inner peer-checked:bg-[#C5A46B] transition-colors block"></span>
-              <span class="absolute left-0 top-0 w-6 h-6 bg-white border border-gray-300 rounded-full shadow peer-checked:translate-x-5 transition-transform"></span>
-            </span>
-            <span class="text-base font-semibold text-gray-700 whitespace-nowrap">Destacar Producto</span>
-          </label>
-          {% for error in form.featured.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-        </div>
-      </div>
-    </div>
-    <!-- Columna 2 -->
-    <div class="space-y-7 md:col-span-1">
-      <div>
-        <label for="{{ form.brand.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Marca</label>
-        {% render_field form.brand class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-        {% for error in form.brand.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div>
-        <label for="{{ form.description.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Descripción</label>
-        {% render_field form.description class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800 min-h-[222px] max-h-[120px] resize-none align-bottom" %}
-        {% for error in form.description.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-    </div>
-    <!-- Columna 3 -->
-    <div class="space-y-7 md:col-span-1">
-      <div class="flex gap-4">
-        <div class="w-1/2">
-          <label for="{{ form.discount.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Descuento</label>
-          {% render_field form.discount class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-          {% for error in form.discount.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-        </div>
-        <div class="w-1/2">
-          <label for="{{ form.price.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">Precio<span class="text-red-500">*</span></label>
-          {% render_field form.price type="text" class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46L] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-          {% for error in form.price.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-        </div>
-      </div>
-      <div>
-        <label class="block text-base font-semibold text-gray-700 mb-1">Imágenes (máx. 7)</label>
-        <input type="file" name="image" id="image-upload-input" accept="image/*" multiple class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" />
-        <small class="text-gray-500">Puedes seleccionar hasta 7 imágenes.</small>
-        {% for error in image_form.image.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div class="mt-6">
-        <label class="block text-base font-semibold text-gray-700 mb-1">Video</label>
-        {% render_field video_form.video class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
-        <small class="text-gray-500">Solo se permite un video por producto.</small>
-        {% for error in video_form.video.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-    </div>
-    <div class="md:col-span-3 flex justify-end gap-3">
-      <a href="{% url 'products:list_product' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
-        <span class="material-icons-outlined">arrow_back</span> Cancelar
-      </a>
-      <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#093f62] text-white font-semibold shadow-md hover:bg-[#C5A46B] hover:text-[#093f62] transition">
-        <span class="material-icons-outlined">save</span> Guardar
-      </button>
-    </div>
-  </form>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const previewImg = document.getElementById('preview-img');
-  const imageInput = document.getElementById('image-upload-input');
-  const placeholderIcon = document.getElementById('placeholder-icon');
-  const placeholderText = document.getElementById('placeholder-text');
-
-  imageInput.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        previewImg.src = evt.target.result;
-        previewImg.classList.remove('hidden');
-        placeholderIcon.classList.add('hidden');
-        placeholderText.classList.add('hidden');
-      };
-      reader.readAsDataURL(file);
-    } else {
-      previewImg.src = '';
-      previewImg.classList.add('hidden');
-      placeholderIcon.classList.remove('hidden');
-      placeholderText.classList.remove('hidden');
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
     }
-  });
+    /* Estilos personalizados para el formulario de producto */
+    .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .input-focus {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .input-focus:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .file-upload-area {
+        border: 2px dashed #e2e8f0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+    }
+    .file-upload-area:hover {
+        border-color: #6366f1;
+        background: linear-gradient(145deg, #eef2ff, #e0e7ff);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+    }
+    .file-upload-area.dragover {
+        border-color: #4f46e5;
+        background: linear-gradient(145deg, #e0e7ff, #c7d2fe);
+        transform: scale(1.02);
+    }
+    .image-preview {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .image-preview:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+    .remove-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+    .remove-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+    .section-divider {
+        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+        height: 1px;
+        margin: 2rem 0;
+    }
+    .floating-label {
+        position: relative;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #4f46e5, #4338ca);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+    }
+    .btn-secondary {
+        background: linear-gradient(135deg, #64748b, #475569);
+        transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, #475569, #334155);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(100, 116, 139, 0.3);
+    }
+    .checkbox-custom {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .checkbox-custom:checked {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        border-color: #4f46e5;
+    }
+    .checkbox-custom:checked::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .form-section {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e0e7ff 100%); /* Soft color gradient */
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 24px rgba(99,102,241,0.07);
+    }
+</style>
+<body class="gradient-bg min-h-screen py-12">
+  {% if form.errors %}
+  <div class="mb-6 p-4 bg-red-100 border border-red-400 rounded-xl">
+    <h2 class="text-lg font-bold text-red-700 mb-2">Errores en el formulario:</h2>
+    <ul class="text-red-600 text-sm">
+      {% for field in form %}
+        {% for error in field.errors %}
+          <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+        {% endfor %}
+      {% endfor %}
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="glass-effect rounded-3xl shadow-2xl p-10">
+          <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3 flex items-center justify-center gap-4">
+              Añadir Nuevo Producto
+              <span class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full">
+                  <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+              </span>
+            </h1>
+            <p class="text-gray-600 text-lg">Complete todos los campos para agregar el producto al inventario</p>
+          </div>
 
-  // Formatear el campo de precio con separador de miles y mantener el cursor
-  const priceInput = document.getElementById('{{ form.price.id_for_label }}');
-  if (priceInput) {
-    priceInput.setAttribute('inputmode', 'numeric');
-    priceInput.addEventListener('input', function(e) {
-      const selectionStart = priceInput.selectionStart;
-      const oldLength = priceInput.value.length;
-      let value = priceInput.value.replace(/\D/g, '');
-      if (value) {
-        value = parseInt(value, 10).toLocaleString('es-CO');
-      }
-      priceInput.value = value;
-      // Ajustar la posición del cursor
-      const newLength = value.length;
-      priceInput.setSelectionRange(newLength, newLength);
-    });
-  }
-});
-</script>
+            <form id="productForm" class="space-y-8" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Fila 1: Nombre, Marca, Categoría -->
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mr-3"></div>
+                        INFORMACIÓN BÁSICA
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                Nombre del Producto *
+                            </label>
+                            <input type="text" id="productName" name="name" required
+                                   class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm"
+                                   placeholder="Ej: iPhone 15 Pro Max">
+                        </div>
+
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                Marca *
+                            </label>
+                            <select id="brand" name="brand" required class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm">
+                                <option value="">Seleccionar marca</option>
+                {% for marca in marcas %}
+                    <option value="{{ marca.id }}">{{ marca.name }}</option>
+                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                                Categoría *
+                            </label>
+                            <select id="category" name="category" required class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm">
+                                <option value="">Seleccionar categoría</option>
+                {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}">{{ categoria.name }}</option>
+                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 2: Precio, Stock, Descuento -->
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mr-3"></div>
+                        INFORMACIÓN DE PRECIOS
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                                Precio ($) *
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                                <input type="text" id="price" name="price" step="0.01" min="0" required
+                                       class="input-focus w-full pl-8 pr-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm"
+                                       placeholder="0.00" inputmode="decimal" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                                Stock *
+                            </label>
+                            <input type="number" id="stock" name="stock" min="0" required
+                                   class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm"
+                                   placeholder="Cantidad disponible">
+                        </div>
+
+                        <div class="floating-label">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                Descuento (%)
+                            </label>
+                            <div class="relative">
+                                <input type="number" id="discount" name="discount" min="0" max="100" step="0.1" class="input-focus w-full px-5 pr-8 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm"
+                                       placeholder="0">
+                                <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 3: Destacar Producto y Descripción -->
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mr-3"></div>
+                        DETALLES ADICIONALES
+                    </h3>
+                    <div class="grid md:grid-cols-4 gap-6 items-start">
+                        <div class="flex items-center space-x-4 pt-8">
+                            <div class="flex items-center space-x-3">
+                                <label for="featured" class="flex items-center cursor-pointer select-none">
+                                    <span class="mr-3 text-sm font-semibold text-gray-700 flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                        Destacar Producto
+                                    </span>
+                                    <input type="checkbox" id="featured" name="featured" class="sr-only peer">
+                                    <div class="w-14 h-8 bg-gray-200 rounded-full relative transition-all duration-300 shadow-inner peer-checked:bg-gradient-to-r peer-checked:from-yellow-400 peer-checked:to-yellow-600">
+                                        <span class="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow border border-gray-300 flex items-center justify-center transition-all duration-300" style="transition-property: left;">
+                                            <svg class="w-4 h-4 text-yellow-500 opacity-0 peer-checked:opacity-100 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        </span>
+                                        <style>
+                                            /* Switch deslizable para Destacar Producto */
+                                            #featured:checked + div > span {
+                                                left: 20px !important;
+                                            }
+                                            #featured + div > span {
+                                                left: 4px !important;
+                                            }
+                                        </style>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                                </svg>
+                                Descripción del Producto
+                            </label>
+                            <textarea id="description" name="description" rows="4"
+                                      class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none bg-white/80 backdrop-blur-sm"
+                                      placeholder="Describe las características principales del producto, sus beneficios y cualquier información relevante..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 4: Imágenes del Producto -->
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full mr-3"></div>
+                        GALERIA DE IMÁGENES
+                        <span class="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Requerido</span>
+                    </h3>
+                    <div id="imagePreview" class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div class="file-upload-area rounded-2xl p-6 text-center cursor-pointer aspect-square flex flex-col justify-center items-center group" id="imageUploadArea">
+                            <div class="mb-3 group-hover:scale-110 transition-transform duration-300">
+                                <svg class="mx-auto h-10 w-10 text-indigo-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-700 mb-1">Arrastra imágenes</p>
+                            <p class="text-xs text-gray-500 mb-3">o haz clic para seleccionar</p>
+                            <input type="file" id="imageInput" name="images" multiple accept="image/*" class="hidden" max="7">
+                            <button type="button" onclick="document.getElementById('imageInput').click()" 
+                                    class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                Seleccionar
+                            </button>
+                            <script>
+                              document.getElementById('imageUploadArea').addEventListener('click', function(e) {
+                                // Evita que el click en el botón "Seleccionar" dispare dos veces
+                                if (e.target.tagName !== 'BUTTON') {
+                                  document.getElementById('imageInput').click();
+                                }
+                              });
+                            </script>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <div class="flex items-center text-sm text-blue-700">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span><strong>Formatos soportados:</strong> JPG, PNG, GIF • <strong>Máximo:</strong> 7 imágenes • <strong>Tamaño recomendado:</strong> 1200x1200px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 5: Video del Producto -->
+                <div class="form-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <div class="w-2 h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full mr-3"></div>
+                        VIDEO PROMOCIONAL
+                        <span class="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Opcional</span>
+                    </h3>
+                    <!-- Input de video SIEMPRE presente en el formulario -->
+                    <input type="file" id="videoInput" name="video" accept="video/*" class="hidden">
+                    <div id="videoUploadContainer"></div>
+                    <div id="videoPreview" class="mt-6"></div>
+                    <div class="mt-4 p-4 bg-red-50 rounded-xl border border-red-200">
+                        <div class="flex items-center text-sm text-red-700">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span><strong>Formatos soportados:</strong> MP4, MOV, AVI, WebM • <strong>Tamaño máximo:</strong> 70MB • <strong>Duración recomendada:</strong> 30-60 segundos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción SIEMPRE al final del formulario -->
+            </form>
+            <div class="flex flex-col sm:flex-row gap-6 pt-8">
+                <button type="submit" form="productForm"
+                        class="btn-primary flex-1 text-white py-4 px-8 rounded-xl font-bold text-lg focus:ring-4 focus:ring-indigo-300 focus:ring-offset-2 flex items-center justify-center space-x-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    <span>Añadir Producto</span>
+                </button>
+                <button type="button" onclick="resetForm()"
+                        class="btn-secondary flex-1 text-white py-4 px-8 rounded-xl font-bold text-lg flex items-center justify-center space-x-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Limpiar Formulario</span>
+                </button>
+                <a href="{% url 'products:list_product' %}" class="btn-secondary flex-1 text-white py-4 px-8 rounded-xl font-bold text-lg flex items-center justify-center space-x-3 text-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span>Volver al Listado</span>
+                </a>
+            </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let selectedImages = [];
+        let selectedVideo = null;
+
+        // Manejo de imágenes
+        const imageInput = document.getElementById('imageInput');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const imagePreview = document.getElementById('imagePreview');
+
+        imageInput.addEventListener('change', handleImageSelection);
+        // Eliminar el evento click general en el área para evitar que se abra el input al renderizar previews
+        // imageUploadArea.addEventListener('click', () => imageInput.click());
+        imageUploadArea.addEventListener('dragover', handleDragOver);
+        imageUploadArea.addEventListener('drop', handleImageDrop);
+
+        function handleImageSelection(e) {
+            const files = Array.from(e.target.files);
+            addImages(files);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            imageUploadArea.classList.add('dragover');
+        }
+
+        function handleImageDrop(e) {
+            e.preventDefault();
+            imageUploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+            addImages(files);
+        }
+
+        function addImages(files) {
+            files.forEach(file => {
+                if (selectedImages.length < 7) {
+                    selectedImages.push(file);
+                    displayImagePreview(file, selectedImages.length - 1);
+                }
+            });
+            updateImageUploadArea();
+        }
+
+        function displayImagePreview(file, index) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'image-preview relative bg-white rounded-2xl overflow-hidden aspect-square shadow-lg border-2 border-gray-100';
+                div.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                        <button type="button" class="remove-btn opacity-100 transition-opacity duration-300" data-index="${index}">×</button>
+                    </div>
+                `;
+                // Add event listener for remove button
+                div.querySelector('.remove-btn').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    removeImage(index);
+                });
+                // Insert before upload area
+                const uploadArea = document.getElementById('imageUploadArea');
+                imagePreview.insertBefore(div, uploadArea);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            updateImagePreviews();
+            updateImageUploadArea();
+        }
+
+        function updateImagePreviews() {
+            // Limpiar solo las imágenes, mantener el área de upload
+            const imagePreviews = imagePreview.querySelectorAll('.image-preview');
+            imagePreviews.forEach(preview => {
+                if (!preview.id || preview.id !== 'imageUploadArea') {
+                    preview.remove();
+                }
+            });
+            
+            selectedImages.forEach((file, index) => {
+                displayImagePreview(file, index);
+            });
+        }
+
+        function updateImageUploadArea() {
+            const uploadText = imageUploadArea.querySelector('p');
+            if (selectedImages.length >= 7) {
+                uploadText.textContent = 'Máximo alcanzado';
+                imageInput.disabled = true;
+                imageUploadArea.style.display = 'none';
+            } else {
+                uploadText.textContent = `Arrastra aquí`;
+                imageInput.disabled = false;
+                imageUploadArea.style.display = 'flex';
+            }
+        }
+
+        // Manejo de video
+
+
+        const videoUploadContainer = document.getElementById('videoUploadContainer');
+        const videoPreview = document.getElementById('videoPreview');
+        const videoInput = document.getElementById('videoInput');
+        // Plantilla HTML para el área de carga de video (sin input, usa el global)
+        const videoUploadAreaTemplate = `
+            <div class="file-upload-area rounded-2xl p-10 text-center cursor-pointer group" id="videoUploadArea">
+                <div class="mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <svg class="mx-auto h-16 w-16 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <p class="text-xl font-semibold text-gray-700 mb-2">Arrastra tu video aquí</p>
+                <p class="text-sm text-gray-500 mb-6">o haz clic para seleccionar desde tu dispositivo</p>
+                <button type="button" onclick="videoInput.click()" 
+                        class="bg-gradient-to-r from-red-500 to-pink-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    Seleccionar Video
+                </button>
+            </div>
+        `;
+
+
+        // Renderiza el área de carga de video y vincula eventos
+        function renderVideoUploadArea() {
+            videoUploadContainer.innerHTML = videoUploadAreaTemplate;
+            bindVideoInputEvents();
+        }
+
+        function bindVideoInputEvents() {
+            const videoUploadArea = document.getElementById('videoUploadArea');
+            if (videoInput) {
+                videoInput.addEventListener('change', handleVideoSelection);
+            }
+            if (videoUploadArea) {
+                videoUploadArea.addEventListener('dragover', handleDragOver);
+                videoUploadArea.addEventListener('drop', handleVideoDrop);
+                videoUploadArea.onclick = function(e) {
+                    if (
+                        e.target.tagName === 'BUTTON' ||
+                        e.target.classList.contains('remove-btn') ||
+                        e.target.id === 'videoInput' ||
+                        e.target.closest('button') ||
+                        e.target.closest('.remove-btn')
+                    ) return;
+                    if (selectedVideo) return;
+                    videoInput.click();
+                };
+            }
+        }
+
+        // Inicializa el área de carga al cargar la página
+        renderVideoUploadArea();
+
+        function handleVideoSelection(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 70 * 1024 * 1024) {
+                    showVideoSizeError();
+                    return;
+                }
+                selectedVideo = file;
+                displayVideoPreview(file);
+            }
+        }
+
+        function handleVideoDrop(e) {
+            e.preventDefault();
+            videoUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('video/')) {
+                if (file.size > 70 * 1024 * 1024) {
+                    showVideoSizeError();
+                    return;
+                }
+                selectedVideo = file;
+                displayVideoPreview(file);
+            }
+        }
+
+        function displayVideoPreview(file) {
+            const reader = new FileReader();
+            // Muestra barra de progreso
+            videoUploadContainer.innerHTML = `
+                <div class='file-upload-area rounded-2xl p-10 text-center cursor-pointer group' id='videoUploadArea'>
+                    <div class='relative bg-white rounded-2xl overflow-hidden shadow-xl border-2 border-gray-100 mt-6 flex flex-col items-center'>
+                        <div id='videoProgressBarContainer' class='w-full px-4 pt-4'>
+                            <div class='w-full bg-gray-200 rounded-full h-4'>
+                                <div id='videoProgressBar' class='bg-gradient-to-r from-red-500 to-pink-500 h-4 rounded-full transition-all duration-300' style='width:0%'></div>
+                            </div>
+                            <div id='videoProgressText' class='text-xs text-gray-600 mt-1 text-right'>0%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            reader.onprogress = function(ev) {
+                if (ev.lengthComputable) {
+                    const percent = Math.round((ev.loaded / ev.total) * 100);
+                    document.getElementById('videoProgressBar').style.width = percent + '%';
+                    document.getElementById('videoProgressText').textContent = percent + '%';
+                }
+            };
+            reader.onloadend = function(ev) {
+                document.getElementById('videoProgressBar').style.width = '100%';
+                document.getElementById('videoProgressText').textContent = '100%';
+            };
+            reader.onload = function(ev) {
+                videoUploadContainer.innerHTML = `
+                    <div class='file-upload-area rounded-2xl p-10 text-center cursor-pointer group' id='videoUploadArea'>
+                        <div class='relative bg-white rounded-2xl overflow-hidden shadow-xl border-2 border-gray-100 mt-6' id='videoPreviewBox'>
+                            <video src='${ev.target.result}' controls class='w-full max-h-80 object-cover'>Tu navegador no soporta el elemento video.</video>
+                            <button type='button' id='removeVideoBtn' class='remove-btn opacity-100 transition-opacity duration-300 absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-red-500 text-white text-xl font-bold shadow-lg hover:bg-red-700 focus:outline-none' style='z-index:10;'>×</button>
+                            <div class='p-4 bg-gradient-to-r from-red-50 to-pink-50'>
+                                <div class='flex items-center space-x-3'>
+                                    <div class='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
+                                    <p class='text-sm font-semibold text-gray-700'>${file.name}</p>
+                                    <span class='text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full'>${(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                // Evento para eliminar video
+                document.getElementById('removeVideoBtn').onclick = function(ev) {
+                    ev.stopPropagation();
+                    selectedVideo = null;
+                    // Limpiar el input de video para permitir volver a seleccionar el mismo archivo
+                    if (videoInput) {
+                        videoInput.value = '';
+                    }
+                    renderVideoUploadArea();
+                };
+                bindVideoInputEvents();
+            };
+            reader.readAsDataURL(file);
+        }
+
+
+
+        // Manejo del formulario
+
+        function showVideoSizeError() {
+            videoPreview.innerHTML = `
+                <div class='mb-6 group-hover:scale-110 transition-transform duration-300'>
+                    <svg class='mx-auto h-16 w-16 text-red-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'></path>
+                    </svg>
+                </div>
+                <p class='text-xl font-semibold text-red-600 mb-2'>El archivo excede el tamaño máximo permitido (70 MB).</p>
+                <p class='text-sm text-gray-500 mb-6'>Por favor selecciona un video menor a 70 MB.</p>
+            `;
+        }
+        // El envío del formulario ahora es gestionado por Django en el backend
+
+        function resetForm() {
+            document.getElementById('productForm').reset();
+            selectedImages = [];
+            selectedVideo = null;
+            
+            // Limpiar solo las imágenes, mantener el área de upload
+            const imagePreviews = imagePreview.querySelectorAll('.image-preview');
+            imagePreviews.forEach(preview => {
+                if (!preview.id || preview.id !== 'imageUploadArea') {
+                    preview.remove();
+                }
+            });
+            
+            videoPreview.innerHTML = '';
+            updateImageUploadArea();
+        }
+    // Formateo europeo para el campo de precio: 1.234,56
+    const priceInput = document.getElementById('price');
+    const discountInput = document.getElementById('discount');
+    // Crear elemento para mostrar el precio final y badge de descuento
+    let finalPriceEl = document.getElementById('finalPriceDisplay');
+    if (!finalPriceEl) {
+        const priceField = priceInput.closest('.floating-label');
+        finalPriceEl = document.createElement('div');
+        finalPriceEl.id = 'finalPriceDisplay';
+        finalPriceEl.className = 'mt-2 flex items-center gap-3';
+        priceField.appendChild(finalPriceEl);
+    }
+
+    function parseEuropeanNumber(str) {
+        // Convierte 1.234,56 a 1234.56 (float)
+        if (!str) return 0;
+        let clean = str.replace(/\./g, '').replace(/,/g, '.');
+        return parseFloat(clean) || 0;
+    }
+
+    function formatEuropeanNumber(num) {
+        // Convierte 1234.56 a 1.234,56
+        if (isNaN(num)) return '';
+        return num.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function updateFinalPrice() {
+        const price = parseEuropeanNumber(priceInput.value);
+        const discount = parseFloat(discountInput.value) || 0;
+        let finalPrice = price;
+        if (discount > 0 && discount < 100) {
+            finalPrice = price - (price * discount / 100);
+        }
+        if (price > 0 && discount > 0 && discount < 100) {
+            finalPriceEl.innerHTML = `
+                <div class="flex flex-col">
+                    <span class='text-gray-400 text-xl font-semibold line-through'>$ ${formatEuropeanNumber(price)}</span>
+                    <span class='text-black text-3xl font-bold'>$ ${formatEuropeanNumber(finalPrice)}</span>
+                </div>
+                <span class='ml-2 px-4 py-1 rounded-lg bg-orange-500 text-white text-xl font-bold flex items-center h-fit'>-${discount}%</span>
+            `;
+        } else if (price > 0) {
+            finalPriceEl.innerHTML = `<span class='text-black text-3xl font-bold'>$ ${formatEuropeanNumber(price)}</span>`;
+        } else {
+            finalPriceEl.innerHTML = '';
+        }
+    }
+
+    if (priceInput && discountInput) {
+        priceInput.addEventListener('input', function(e) {
+            let value = priceInput.value.replace(/[^\d.,]/g, '');
+            value = value.replace(/\./g, '').replace(/,/g, ',');
+            let parts = value.split(',');
+            let integer = parts[0];
+            let decimal = parts[1] ? ',' + parts[1].replace(/[^\d]/g, '').slice(0,2) : '';
+            integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            priceInput.value = integer + decimal;
+            updateFinalPrice();
+        });
+        discountInput.addEventListener('input', function(e) {
+            updateFinalPrice();
+        });
+        // Inicializar al cargar
+        updateFinalPrice();
+        // Al limpiar el formulario, actualizar precio final
+        const productForm = document.getElementById('productForm');
+        if (productForm) {
+            productForm.addEventListener('reset', function() {
+                setTimeout(updateFinalPrice, 50);
+            });
+            productForm.addEventListener('submit', function(e) {
+                if (priceInput.value) {
+                    let clean = priceInput.value.replace(/\./g, '');
+                    clean = clean.replace(/,/g, '.');
+                    priceInput.value = clean;
+                }
+            });
+        }
+    }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9671caff12ba7b05',t:'MTc1Mzg0NjM4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
 {% endblock %}

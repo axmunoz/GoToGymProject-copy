@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.db.models import F
 
 def producto_list(request):
-    productos = Product.objects.all()
+    productos = Product.objects.all().prefetch_related('images')
     categorias = ProductCategory.objects.all()
     marcas = Brand.objects.all()
     filtro = request.GET.get('filtro', '')
@@ -41,7 +41,7 @@ def producto_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    featured_products = Product.objects.filter(featured=True)
+    featured_products = Product.objects.filter(featured=True).prefetch_related('images')
 
     context = {
         'productos': page_obj,
