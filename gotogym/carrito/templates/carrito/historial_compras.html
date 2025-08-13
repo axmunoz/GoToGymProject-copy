@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Historial de Compras{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto mt-10 bg-[#f5f7ff] rounded-2xl p-8" style="min-height:60vh;">
+  <h2 class="text-3xl font-extrabold mb-2 text-[#093f62]">Historial de Compras</h2>
+  <div class="text-gray-500 mb-8">Revisa todas tus compras realizadas</div>
+  <form method="get" class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+    <select name="fecha" class="border rounded-lg px-3 py-2 text-sm">
+      <option value="30" {% if fecha_filtro == '30' %}selected{% endif %}>Últimos 30 días</option>
+      <option value="180" {% if fecha_filtro == '180' %}selected{% endif %}>Últimos 6 meses</option>
+      <option value="all" {% if fecha_filtro == 'all' %}selected{% endif %}>Todo el año</option>
+    </select>
+    <input type="text" name="q" value="{{ q|default:'' }}" class="border rounded-lg px-3 py-2 text-sm flex-1" placeholder="Número de pedido o producto..." />
+    <button type="submit" class="px-4 py-2 rounded-lg bg-[#6c63ff] text-white font-bold hover:bg-[#1976d2] transition-all text-sm">Filtrar</button>
+    <div class="ml-auto text-sm text-gray-500 font-bold">Total de pedidos <span class="text-[#6c63ff]">{{ carritos.paginator.count }}</span></div>
+  </form>
+  {% if carritos %}
+    {% for carrito in carritos %}
+    <div class="bg-white rounded-xl shadow p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
+        <div class="font-bold text-[#6c63ff]">Pedido #ORD-{{ carrito.fecha_actualizacion|date:'Y' }}-{{ carrito.id|stringformat:'03d' }}</div>
+        <div class="text-gray-500 text-sm">Realizado el {{ carrito.fecha_actualizacion|date:'d \d\e F, Y' }}</div>
+        <span class="ml-2 px-3 py-1 rounded-lg text-xs font-bold {% if carrito.estado == 'pagado' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+          {% if carrito.estado == 'pagado' %}Entregado{% else %}En tránsito{% endif %}
+        </span>
+        <div class="text-2xl font-bold text-[#6c63ff] ml-4">${{ carrito.get_total|floatformat:2 }}</div>
+      </div>
+      <div class="flex flex-col md:flex-row gap-6 mt-4">
+        <div class="flex-1">
+          <div class="font-semibold mb-2">Productos ({{ carrito.get_num_productos }})</div>
+          <ul class="mb-2">
+            {% for item in carrito.items.all %}
+            <li class="flex items-center gap-2 mb-1">
+              <span class="material-icons text-[#6c63ff] text-base">inventory_2</span>
+              <span>{{ item.product.name }}</span>
+              <span class="text-xs text-gray-400">Cant: {{ item.cantidad }}</span>
+              <span class="text-xs text-gray-400">${{ item.product.discounted_price|floatformat:2 }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="flex-1">
+          <div class="font-semibold mb-2">Información de envío</div>
+          <div class="text-xs text-gray-500">Dirección: Calle Principal 123, Ciudad</div>
+          <div class="text-xs text-gray-500">Método: Envío estándar</div>
+          <div class="text-xs text-gray-500">Entregado: {{ carrito.fecha_actualizacion|date:'d \d\e F, Y' }}</div>
+          <div class="text-xs text-gray-500">Transportista: DHL Express</div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <a href="{% url 'carrito:resumen_compra' carrito.id %}" class="px-4 py-2 rounded-lg bg-[#6c63ff] text-white font-bold hover:bg-[#1976d2] transition-all text-sm">Ver detalles</a>
+        <a href="#" class="px-4 py-2 rounded-lg bg-[#ede9f7] text-[#6c63ff] font-bold hover:bg-[#d1c4e9] transition-all text-sm">Descargar factura</a>
+        <a href="/tienda/" class="px-4 py-2 rounded-lg bg-[#ede9f7] text-[#6c63ff] font-bold hover:bg-[#d1c4e9] transition-all text-sm">Volver a comprar</a>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="text-center text-gray-400 text-lg py-24">No tienes compras realizadas aún.</div>
+  {% endif %}
+  <div class="flex justify-center mt-8">
+    <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+      <a href="#" class="px-3 py-1 rounded-l-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">Anterior</a>
+      <a href="#" class="px-3 py-1 border border-gray-300 bg-[#6c63ff] text-white font-bold">1</a>
+      <a href="#" class="px-3 py-1 border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">2</a>
+      <a href="#" class="px-3 py-1 rounded-r-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">Siguiente</a>
+    </nav>
+  </div>
+</div>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock %}

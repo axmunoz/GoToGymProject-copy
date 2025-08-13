@@ -18,11 +18,12 @@ def post_list(request):
     user = request.user
     is_authenticated = user.is_authenticated
     is_influencer = is_authenticated and hasattr(user, 'influencer_profile')
-    is_admin = is_authenticated and (user.is_staff or user.is_superuser)
 
-    # Todos los usuarios (incluyendo influencers) ven todos los posts publicados
+    # Solo superusuarios ven el menú lateral (dashboard), staff y usuarios normales ven el navbar superior
+    is_superuser = is_authenticated and user.is_superuser
+    is_admin = is_superuser  # Solo superuser es admin para el dashboard
+
     posts = Post.objects.filter(is_published=True).select_related('category', 'author').order_by('-published')
-
     categories = Category.objects.all()
     authors = get_user_model().objects.filter(posts__isnull=False).distinct()
 
@@ -45,8 +46,8 @@ def post_list(request):
         params.pop('page')
     params = params.urlencode()
 
-    # Set template_extends for conditional base
-    if is_admin:
+    # Solo superuser ve el dashboard, los demás ven base.html
+    if is_superuser:
         template_extends = "_base_dasboard.html"
     else:
         template_extends = "base.html"

@@ -1,3 +1,4 @@
+from .models import Talla
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import ProductCategory, Product, Brand, ProductImage, ProductVideo
 from django import forms
@@ -28,8 +29,16 @@ def add_product(request):
     from .forms import ProductForm, ProductImageForm, ProductVideoForm
     marcas = Brand.objects.all().order_by('name')
     categorias = ProductCategory.objects.all().order_by('name')
+    tallas = Talla.objects.all().order_by('nombre')
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
+        # Sumar el stock total de los campos ocultos antes de crear el formulario
+        post_data = request.POST.copy()
+        try:
+            stock_total = int(post_data.get('stock_total', 0))
+        except (ValueError, TypeError):
+            stock_total = 0
+        post_data['stock'] = stock_total
+        form = ProductForm(post_data, request.FILES)
         video_form = ProductVideoForm(request.POST, request.FILES)
         valid = form.is_valid()
         valid_video = True
@@ -46,6 +55,25 @@ def add_product(request):
             # Video
             if 'video' in request.FILES:
                 ProductVideo.objects.create(product=product, video=request.FILES['video'])
+
+            # Guardar stock por tallas personalizadas
+            from .models import ProductStock
+            import json
+            stock_tallas_json = request.POST.get('stock_tallas', '')
+            if stock_tallas_json:
+                try:
+                    tallas_data = json.loads(stock_tallas_json)
+                except Exception:
+                    tallas_data = []
+                for item in tallas_data:
+                    talla = item.get('talla', '').strip()
+                    try:
+                        cantidad = int(item.get('cantidad', 0))
+                    except (ValueError, TypeError):
+                        cantidad = 0
+                    if talla and cantidad > 0:
+                        ProductStock.objects.create(product=product, talla=talla, cantidad=cantidad)
+
             return redirect('products:list_product')
         # Si no es válido, mostrar errores
     else:
@@ -57,8 +85,25 @@ def add_product(request):
         'image_form': image_form,
         'video_form': video_form,
         'marcas': marcas,
-        'categorias': categorias
+        'categorias': categorias,
+        'tallas': tallas
     })
+
+# Endpoint para crear tallas desde el modal (AJAX)
+@csrf_exempt
+@require_POST
+def crear_tallas(request):
+    import json
+    data = json.loads(request.body.decode('utf-8'))
+    nombres = data.get('tallas', [])
+    creadas = []
+    for nombre in nombres:
+        nombre = nombre.strip()
+        if nombre:
+            obj, created = Talla.objects.get_or_create(nombre=nombre)
+            if created:
+                creadas.append(obj.nombre)
+    return JsonResponse({'ok': True, 'creadas': creadas})
 
 def list_category(request):
     categories = ProductCategory.objects.all()
@@ -85,11 +130,39 @@ def edit_product(request, pk):
     categorias = ProductCategory.objects.all().order_by('name')
     max_images_left = 7 - product.images.count()
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product)
+        post_data = request.POST.copy()
+        try:
+            stock_total = int(post_data.get('stock_total', 0))
+        except (ValueError, TypeError):
+            stock_total = 0
+        post_data['stock'] = stock_total
+        form = ProductForm(post_data, request.FILES, instance=product)
         image_form = ProductImageForm(request.POST, request.FILES)
         video_form = ProductVideoForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save()
+            from .models import ProductStock
+            import json
+            stock_tallas_json = post_data.get('stock_tallas', '')
+            ProductStock.objects.filter(product=product).delete()
+            total_stock = 0
+            if stock_tallas_json:
+                try:
+                    tallas_data = json.loads(stock_tallas_json)
+                except Exception:
+                    tallas_data = []
+                for item in tallas_data:
+                    talla = item.get('talla', '').strip()
+                    try:
+                        cantidad = int(item.get('cantidad', item.get('stock', 0)))
+                    except (ValueError, TypeError):
+                        cantidad = 0
+                    if talla and cantidad > 0:
+                        ProductStock.objects.create(product=product, talla=talla, cantidad=cantidad)
+                        total_stock += cantidad
+            # Actualizar el stock total en el producto
+            product.stock = total_stock
+            product.save(update_fields=['stock'])
             # Eliminar imágenes marcadas para borrar
             deleted_images = request.POST.get('deleted_images', '')
             if deleted_images:
@@ -117,6 +190,16 @@ def edit_product(request, pk):
         form = ProductForm(instance=product)
         image_form = ProductImageForm()
         video_form = ProductVideoForm()
+    # Generar JSON de stock por talla para el JS
+    from .models import ProductStock
+    import json
+    stock_qs = ProductStock.objects.filter(product=product)
+    stock_tallas_list = [
+        {'talla': s.talla, 'stock': s.cantidad} for s in stock_qs
+    ]
+    stock_tallas_json = json.dumps(stock_tallas_list)
+    tallas_qs = Talla.objects.all().order_by('nombre')
+    tallas = list(tallas_qs.values('id', 'nombre'))
     return render(request, 'products/edit_product.html', {
         'form': form,
         'image_form': image_form,
@@ -125,7 +208,9 @@ def edit_product(request, pk):
         'product': product,
         'marcas': marcas,
         'categorias': categorias,
-        'max_images_left': max_images_left
+        'max_images_left': max_images_left,
+        'stock_tallas_json': stock_tallas_json,
+        'tallas': tallas
     })
 
 def delete_product(request, pk):

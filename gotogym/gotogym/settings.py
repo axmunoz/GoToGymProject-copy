@@ -1,3 +1,5 @@
+# URL base del sitio para redirecciones de MercadoPago
+SITE_URL = 'http://127.0.0.1:8000'  # Cambia esto por tu dominio en producción
 
 """
 Django settings for gotogym project.
@@ -40,7 +42,10 @@ ALLOWED_HOSTS = [
 
 # Permitir peticiones desde ngrok para pruebas con MercadoPago
 CSRF_TRUSTED_ORIGINS = [
-    "https://d4ed65101df0.ngrok-free.app"
+    "https://d4ed65101df0.ngrok-free.app",
+    "https://eb255178dc16.ngrok-free.app",
+    "https://99c4f7fe83ee.ngrok-free.app/",
+    "https://132e3c5e721a.ngrok-free.app/",
 ]
 
 
@@ -74,10 +79,6 @@ INSTALLED_APPS = [
     
 ]
 
-
-# Configuración Mercado Pago
-MP_PUBLIC_KEY = 'APP_USR-421c4705-d7ab-4010-beff-c4ee8a9cf475'
-MP_ACCESS_TOKEN = 'APP_USR-185977213159307-061021-53a23bf1a0818fa005a401918ff36185-1845381006'
 
 
 MIDDLEWARE = [
@@ -216,4 +217,8 @@ ALEGRA_API_TOKEN = '64faf379f6271aa04f62'
 
 AUTH_USER_MODEL = 'accounts.User'
 # --- Configuración HubSpot ---
+
+# --- Configuración MercadoPago ---
+MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-421c4705-d7ab-4010-beff-c4ee8a9cf475'
+MERCADOPAGO_PUBLIC_KEY = 'APP_USR-185977213159307-061021-53a23bf1a0818fa005a401918ff36185-1845381006'
 

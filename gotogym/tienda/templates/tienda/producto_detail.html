@@ -1,38 +1,54 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load static %}
+{% load custom_filters %}
 {% block title %}Detalle Producto{% endblock %}
 {% block content %}
+<div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3 items-end"></div>
 <div class="container mx-auto py-4 px-2 sm:px-4">
-  <div class="flex flex-col md:flex-row gap-6 md:gap-8">
-    <div class="w-full md:w-1/2 flex flex-row gap-4 items-start bg-white rounded-2xl shadow-xl mb-4 md:mb-0 p-4">
-      {% comment %} Galería de miniaturas vertical {% endcomment %}
-      <div class="flex flex-col gap-2 items-center min-w-[48px]">
-        {% for img in producto.images.all %}
-          <button type="button" class="thumbnail-btn border-2 border-transparent rounded-lg overflow-hidden focus:outline-none focus:border-[#093f62]" data-media-type="image" data-src="{{ img.image.url }}">
-            <img src="{{ img.image.url }}" alt="Miniatura" class="w-12 h-12 object-cover"/>
-          </button>
-        {% endfor %}
-        {% if producto.video %}
-          <button type="button" class="thumbnail-btn border-2 border-transparent rounded-lg overflow-hidden focus:outline-none focus:border-[#093f62] flex items-center justify-center bg-gray-100" data-media-type="video" data-src="{{ producto.video.video.url }}">
-            <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-              <polygon points="18,14 34,24 18,34" fill="#60a5fa"/>
-              <rect x="4" y="4" width="40" height="40" rx="8" fill="none" stroke="#60a5fa" stroke-width="3"/>
-            </svg>
-          </button>
-        {% endif %}
-        {% if producto.images.count > 5 %}
-          <div class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded-lg text-gray-600 font-bold text-lg border-2 border-gray-300 select-none">+{{ producto.images.count|add:'-5' }}</div>
-        {% endif %}
+    <div class="flex flex-col md:flex-row gap-6 md:gap-8 justify-center items-center min-h-[500px]">
+    <div class="w-full md:w-[450px] flex flex-col items-center justify-center bg-white rounded-2xl shadow-xl mb-4 md:mb-0 p-4 pt-[30px] border-4 border-[#f3e9d2] relative mx-auto">
+              <div class="flex justify-center items-center w-full max-w-[340px] h-[340px] bg-[#f7f7fa] rounded-2xl border-2 border-[#e7c98a] shadow-inner mx-auto mb-4">
+                {% if producto.images.count > 0 %}
+                  <div class="relative w-full h-full">
+                    {% if producto.stock == 0 %}
+                      <span class="absolute top-2 left-2 z-30 sin-stock-label" style="background: #ff2d2d !important;color:#fff;filter:none;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,0.12);font-weight:bold;padding:0.25rem 0.75rem;border-radius:0.5rem;font-size:0.85rem;">SIN STOCK</span>
+                    {% endif %}
+                    <img id="mainMedia" src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="object-cover w-full h-full rounded-xl transition-all duration-300 cursor-zoom-in bg-white shadow {% if producto.stock == 0 %}grayscale{% endif %}"/>
+                  </div>
+                {% elif producto.video %}
+                  <video id="mainMedia" src="{{ producto.video.video.url }}" controls class="object-cover w-full h-full rounded-xl transition-all duration-300"></video>
+                {% endif %}
+        </div>
+        <div class="flex flex-row gap-3 justify-center items-center w-full mt-2">
+          {% for img in producto.images.all|slice:':3' %}
+            <button type="button" class="thumbnail-btn border-2 border-[#e7c98a] hover:border-[#093f62] rounded-xl overflow-hidden focus:outline-none focus:border-[#093f62] shadow transition-all zoom-trigger" data-index="{{ forloop.counter0 }}" data-media-type="image" data-src="{{ img.image.url }}">
+              <img src="{{ img.image.url }}" alt="Miniatura" class="w-16 h-16 object-cover bg-[#f7f7fa]"/>
+            </button>
+          {% endfor %}
+          {% if producto.images.count > 3 %}
+            <button type="button" class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-xl text-gray-600 font-bold text-lg border-2 border-gray-300 select-none zoom-trigger" data-index="0">
+              +{{ producto.images.count|add:'-3' }} más
+            </button>
+          {% endif %}
+        </div>
+        <!-- Modal de zoom -->
+        <div id="zoomModal" class="fixed inset-0 z-50 hidden bg-black/70 flex items-center justify-center">
+          <div class="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-4 flex flex-col items-center">
+            <button id="closeZoom" class="absolute top-2 right-2 text-gray-600 hover:text-red-500 text-2xl font-bold">&times;</button>
+            <div class="flex items-center justify-center w-full">
+              <button id="prevImg" class="text-3xl px-2 py-1 text-gray-400 hover:text-[#093f62] focus:outline-none">&#8249;</button>
+              <img id="zoomedImg" src="" alt="Zoom" class="max-h-[60vh] max-w-[80vw] object-contain rounded-xl mx-4"/>
+              <button id="nextImg" class="text-3xl px-2 py-1 text-gray-400 hover:text-[#093f62] focus:outline-none">&#8250;</button>
+            </div>
+            <div class="flex gap-2 mt-4">
+              {% for img in producto.images.all %}
+                <img src="{{ img.image.url }}" alt="Miniatura" class="w-16 h-16 object-cover rounded-xl border-2 border-[#e7c98a] hover:border-[#093f62] cursor-pointer zoom-thumb shadow transition-all"/>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
       </div>
-      {% comment %} Imagen/video principal {% endcomment %}
-      <div class="flex-1 flex justify-center items-center w-full max-w-[320px] sm:max-w-[415px] h-[220px] sm:h-[390px] relative" id="mainMediaContainer">
-        {% if producto.images.count > 0 %}
-          <img id="mainMedia" src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300"/>
-        {% elif producto.video %}
-          <video id="mainMedia" src="{{ producto.video.video.url }}" controls class="object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300"></video>
-        {% endif %}
-      </div>
-    </div>
     <div class="w-full md:w-1/2">
       <h1 class="text-2xl sm:text-4xl font-extrabold mb-2 text-[#093f62] break-words">{{ producto.name }}</h1>
       <div class="flex flex-wrap items-center gap-2 mb-2">
@@ -62,19 +78,118 @@
         <span class="font-semibold text-gray-700">Marca:</span>
         <span class="inline-block bg-[#f3e9d2] rounded px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-[#093f62] mr-1">{{ producto.brand.name }}</span>
       </div>
-      <form method="post" action="" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mt-2 sm:mt-4">
+  <form id="compraForm" method="post" action="{% url 'carrito:add_to_cart' producto.id %}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mt-2 sm:mt-4">
         {% csrf_token %}
-        <input type="number" name="cantidad" value="1" min="1" class="w-full sm:w-20 px-3 py-2 border border-gray-300 rounded-xl text-lg"/>
-        <button type="submit" class="w-full sm:w-auto px-8 py-2 rounded-full bg-[#093f62] text-white font-bold shadow-md hover:bg-[#C5A46B] hover:text-[#093f62] transition text-lg">Comprar ahora</button>
-      </form>
-      <form method="post" action="{% url 'carrito:add_to_cart' producto.id %}" class="mt-2">
-        {% csrf_token %}
-        <input type="hidden" name="cantidad" value="1">
-        <button type="submit" class="w-full sm:w-auto px-8 py-2 rounded-full bg-[#C5A46B] text-white font-bold shadow-md hover:bg-[#093f62] hover:text-[#C5A46B] transition text-lg flex items-center justify-center gap-2">
-          <span class="material-icons-outlined">shopping_cart</span>
-          Añadir al carrito
+            <select id="tallaSelect" name="talla" required class="w-full sm:w-32 px-3 py-2 mb-2 border-2 border-[#C5A46B] rounded-xl text-lg focus:ring-2 focus:ring-[#093f62] focus:border-[#093f62] transition-all font-semibold bg-white">
+              <option value="" disabled selected>Talla</option>
+              {% for talla in tallas_disponibles %}
+                <option value="{{ talla }}">{{ talla }}</option>
+              {% endfor %}
+            </select>
+{% comment %} Filtro para obtener el stock de una talla {% endcomment %}
+{% if False %}
+  {% for talla, talla_label in producto.stocks.model.TALLA_CHOICES %}
+    {% with stock=producto.stocks.all|get_stock:talla %}
+      ...
+    {% endwith %}
+  {% endfor %}
+{% endif %}
+          <input type="number" name="cantidad" value="1" min="1" class="w-full sm:w-20 px-3 py-2 border border-gray-300 rounded-xl text-lg"/>
+        <button type="submit" name="comprar_ahora" value="1" id="comprarAhoraBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-2 rounded-full font-bold shadow-md text-lg
+          {% if producto.stock == 0 %}bg-[#fc7575] text-white cursor-not-allowed opacity-60{% else %}bg-[#093f62] text-white hover:bg-[#C5A46B] hover:text-[#093f62] transition{% endif %}"
+          {% if producto.stock == 0 %}disabled{% endif %}>
+          <span class="material-icons-outlined text-2xl">shopping_bag</span>
+          Comprar ahora
+        </button>
+        <button type="button" id="addToCartBtn" name="add_to_cart" value="1" class="flex items-center justify-center w-14 h-14 rounded-full shadow-lg text-3xl relative group ml-2
+          {% if producto.stock == 0 %}bg-[#fc7575] text-white cursor-not-allowed opacity-60{% else %}bg-[#C5A46B] text-white hover:bg-[#093f62] hover:text-[#C5A46B] transition-all{% endif %}"
+          title="Añadir al carrito" {% if producto.stock == 0 %}disabled{% endif %}>
+          <span class="material-icons-outlined text-3xl">shopping_cart</span>
+          <span class="absolute bottom-[-30px] left-1/2 -translate-x-1/2 bg-[#C5A46B] text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition pointer-events-none">Añadir al carrito</span>
         </button>
       </form>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const compraForm = document.getElementById('compraForm');
+          const comprarAhoraBtn = document.getElementById('comprarAhoraBtn');
+          const tallaSelect = document.getElementById('tallaSelect');
+          function showToast(message, error=false) {
+            const toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) return;
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-2 rounded-lg shadow font-bold text-white ${error ? 'bg-red-500' : 'bg-green-600'}`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+          }
+          if (compraForm && comprarAhoraBtn) {
+            comprarAhoraBtn.addEventListener('click', function(e) {
+              if (!tallaSelect.value) {
+                e.preventDefault();
+                showToast('Por favor selecciona una talla', true);
+                tallaSelect.focus();
+                return;
+              }
+              e.preventDefault();
+              const formData = new FormData(compraForm);
+              formData.append('comprar_ahora', '1');
+              fetch(compraForm.action, {
+                method: 'POST',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+              })
+              .then(response => {
+                if (response.ok) {
+                  window.location.href = "{% url 'carrito:cart_detail' %}";
+                } else {
+                  throw new Error('Error al añadir al carrito');
+                }
+              })
+              .catch(error => {
+                showToast('Hubo un error al comprar', true);
+              });
+            });
+          }
+          const addToCartBtn = document.getElementById('addToCartBtn');
+          if (compraForm && addToCartBtn) {
+            addToCartBtn.addEventListener('click', function(e) {
+              if (!tallaSelect.value) {
+                e.preventDefault();
+                showToast('Por favor selecciona una talla', true);
+                tallaSelect.focus();
+                return;
+              }
+              e.preventDefault();
+              const formData = new FormData(compraForm);
+              formData.append('add_to_cart', '1');
+              fetch(compraForm.action, {
+                method: 'POST',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+              })
+              .then(response => {
+                if (response.ok) {
+                  response.json().then(data => {
+                    if (data.cart_count !== undefined) {
+                      updateCartCount(data.cart_count);
+                    }
+                  });
+                  showToast('Producto añadido al carrito');
+                } else {
+                  throw new Error('Error al añadir al carrito');
+                }
+              })
+              .catch(error => {
+                showToast('Hubo un error al añadir al carrito', true);
+              });
+            });
+          }
+        });
+      </script>
     </div>
   </div>
   <script>
@@ -83,15 +198,73 @@
       const mainMediaContainer = document.getElementById('mainMediaContainer');
       const mainMedia = document.getElementById('mainMedia');
       const thumbBtns = document.querySelectorAll('.thumbnail-btn');
-      thumbBtns.forEach(btn => {
+    const zoomTriggers = document.querySelectorAll('.zoom-trigger');
+      const zoomModal = document.getElementById('zoomModal');
+      const zoomedImg = document.getElementById('zoomedImg');
+      const closeZoom = document.getElementById('closeZoom');
+      const prevImg = document.getElementById('prevImg');
+      const nextImg = document.getElementById('nextImg');
+      const zoomThumbs = document.querySelectorAll('.zoom-thumb');
+      let imgList = Array.from(zoomThumbs).map(img => img.src);
+      let currentIdx = 0;
+
+      // Miniaturas normales
+      thumbBtns.forEach((btn, idx) => {
         btn.addEventListener('click', function() {
           const type = btn.getAttribute('data-media-type');
           const src = btn.getAttribute('data-src');
           if (type === 'image') {
-            mainMediaContainer.innerHTML = `<img id='mainMedia' src='${src}' alt='' class='object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300'/>`;
+            mainMediaContainer.innerHTML = `<img id='mainMedia' src='${src}' alt='' class='object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300 cursor-zoom-in'/>`;
+            addZoomListener();
           } else if (type === 'video') {
             mainMediaContainer.innerHTML = `<video id='mainMedia' src='${src}' controls class='object-contain max-h-[180px] sm:max-h-[320px] max-w-full rounded-xl transition-all duration-300'></video>`;
           }
+        });
+      });
+        // Abrir zoom desde cualquier miniatura o el botón +N
+        zoomTriggers.forEach((btn) => {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            let idx = parseInt(btn.getAttribute('data-index'));
+            if (isNaN(idx)) idx = 0;
+            imgList = Array.from(document.querySelectorAll('.zoom-thumb')).map(img => img.src);
+            currentIdx = idx;
+            showZoom(currentIdx);
+          });
+        });
+
+      // Zoom al hacer clic en la imagen principal
+      function addZoomListener() {
+        const mainImg = document.getElementById('mainMedia');
+        if (mainImg) {
+          mainImg.addEventListener('click', function() {
+            imgList = Array.from(document.querySelectorAll('.zoom-thumb')).map(img => img.src);
+            currentIdx = imgList.indexOf(mainImg.src);
+            if (currentIdx === -1) currentIdx = 0;
+            showZoom(currentIdx);
+          });
+        }
+      }
+      addZoomListener();
+
+      function showZoom(idx) {
+        zoomedImg.src = imgList[idx];
+        zoomModal.classList.remove('hidden');
+        zoomModal.classList.add('flex');
+      }
+      function hideZoom() {
+        zoomModal.classList.add('hidden');
+        zoomModal.classList.remove('flex');
+      }
+      if (closeZoom) closeZoom.onclick = hideZoom;
+      if (zoomModal) zoomModal.onclick = function(e) { if (e.target === zoomModal) hideZoom(); };
+      if (prevImg) prevImg.onclick = function(e) { e.stopPropagation(); currentIdx = (currentIdx - 1 + imgList.length) % imgList.length; showZoom(currentIdx); };
+      if (nextImg) nextImg.onclick = function(e) { e.stopPropagation(); currentIdx = (currentIdx + 1) % imgList.length; showZoom(currentIdx); };
+      zoomThumbs.forEach((thumb, idx) => {
+        thumb.addEventListener('click', function(e) {
+          e.stopPropagation();
+          currentIdx = idx;
+          showZoom(currentIdx);
         });
       });
     });
@@ -105,7 +278,11 @@
     <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
       {% for rel in related_products %}
       <div class="bg-white rounded-xl shadow p-3 sm:p-4 flex flex-col items-center hover:shadow-lg transition-all">
-        <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="h-24 sm:h-32 object-contain mb-2 rounded"/>
+        {% if rel.images.count > 0 %}
+          <img src="{{ rel.images.first.image.url }}" alt="{{ rel.name }}" class="h-24 sm:h-32 object-contain mb-2 rounded"/>
+        {% else %}
+          <img src="{% static 'images/no-image.png' %}" alt="Sin imagen" class="h-24 sm:h-32 object-contain mb-2 rounded opacity-60"/>
+        {% endif %}
         <div class="font-semibold text-center text-[#093f62] text-sm sm:text-base">{{ rel.name }}</div>
         <div class="text-[#C5A46B] font-bold text-base sm:text-lg">${{ rel.price|floatformat:0 }}</div>
         <a href="{% url 'tienda:producto_detail' rel.id %}" class="mt-2 inline-block px-4 py-1 rounded-full bg-[#C5A46B] text-white font-semibold text-xs sm:text-sm hover:bg-[#093f62] hover:text-[#C5A46B] transition">Ver detalles</a>
@@ -115,13 +292,16 @@
   </div>
   <div class="mt-8 mb-4 p-4 bg-[#f3e9d2] rounded-xl text-center">
     <h3 class="text-xl font-bold text-[#093f62] mb-2">¿Quieres convertirte en un influencer de nuestra marca GoToGym?</h3>
-    {% if user.is_authenticated and not user.influencer_profile %}
-      <a href="{% url 'influencer_suscribete' %}" class="inline-block bg-gradient-to-r from-[#C5A46B] to-[#e7c98a] text-black font-bold py-2 px-6 rounded-lg shadow hover:from-[#e7c98a] hover:to-[#C5A46B] transition-all">¡Hazte influencer ahora!</a>
-    {% elif user.is_authenticated and user.influencer_profile %}
-      <span class="inline-block bg-green-200 text-green-800 font-bold py-2 px-6 rounded-lg">¡Ya eres influencer!</span>
-    {% else %}
-      <a href="{% url 'login' %}?next={% url 'influencer_suscribete' %}" class="inline-block bg-gradient-to-r from-[#C5A46B] to-[#e7c98a] text-black font-bold py-2 px-6 rounded-lg shadow hover:from-[#e7c98a] hover:to-[#C5A46B] transition-all">Inicia sesión para ser influencer</a>
-    {% endif %}
+      {% if user.is_authenticated %}
+        {% if user.influencer_profile %}
+            <a href="{% url 'influencer_dashboard' %}" class="inline-block bg-green-200 text-green-800 font-extrabold py-3 px-8 rounded-xl hover:bg-green-300 transition-all shadow">Ir a tu panel de influencer</a>
+        {% else %}
+            <a href="{% url 'influencer_suscribete' %}" class="inline-block bg-gradient-to-r from-[#C5A46B] to-[#e7c98a] text-black font-extrabold py-3 px-8 rounded-xl shadow hover:from-[#e7c98a] hover:to-[#C5A46B] transition-all">Da clic aquí y conviértete en influencer</a>
+        {% endif %}
+      {% else %}
+          <a href="{% url 'login' %}?next={% url 'influencer_suscribete' %}" class="inline-block bg-gradient-to-r from-[#C5A46B] to-[#e7c98a] text-black font-extrabold py-3 px-8 rounded-xl shadow hover:from-[#e7c98a] hover:to-[#C5A46B] transition-all">Inicia sesión para ser influencer</a>
+      {% endif %}
   </div>
 </div>
+
 {% endblock %}

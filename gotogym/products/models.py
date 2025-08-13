@@ -1,3 +1,21 @@
+
+from django.db import models
+# Modelo para tallas globales
+class Talla(models.Model):
+    nombre = models.CharField(max_length=20, unique=True)
+    def __str__(self):
+        return self.nombre
+# --- STOCK POR TALLA ---
+
+class ProductStock(models.Model):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='stocks')
+    talla = models.CharField(max_length=20)  # Permite tallas personalizadas
+    cantidad = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('product', 'talla')
+    def __str__(self):
+        return f"{self.product.name} - {self.talla}: {self.cantidad}"
 from django.db import models
 
 # Create your models here.
@@ -33,10 +51,23 @@ class Product(models.Model):
             discount = Decimal(self.discount)
         except (TypeError, ValueError, InvalidOperation):
             discount = Decimal('0')
-        if discount > 0:
-            self.discounted_price = self.price * (Decimal('1.0') - (discount / Decimal('100')))
-        else:
+        # Si el descuento es None, negativo o 0, el precio con descuento es igual al precio
+        if discount is None or discount <= 0:
             self.discounted_price = self.price
+        else:
+            # Si el descuento es 100 o más, el precio con descuento es 0 (no negativo)
+            if discount >= 100:
+                self.discounted_price = Decimal('0.00')
+            else:
+                self.discounted_price = (self.price * (Decimal('1.0') - (discount / Decimal('100')))).quantize(Decimal('0.01'))
+
+        # Actualizar el stock total sumando todas las cantidades de ProductStock
+        if self.pk:
+            try:
+                total_stock = self.stocks.aggregate(total=models.Sum('cantidad'))['total']
+                self.stock = total_stock or 0
+            except Exception:
+                pass
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from products.models import Product, ProductCategory, Brand
 from django.core.paginator import Paginator
 from django.db.models import F
+from influencer.models import InfluencerProfile
 
 def producto_list(request):
     productos = Product.objects.all().prefetch_related('images')
@@ -37,7 +38,12 @@ def producto_list(request):
     elif orden == 'nombre_desc':
         productos = productos.order_by('-name')
 
-    paginator = Paginator(productos, 12)
+    # Forzar el cálculo del precio con descuento para cada producto
+    productos_list = list(productos)
+    for producto in productos_list:
+        producto.save()  # Esto recalcula discounted_price si discount cambió
+
+    paginator = Paginator(productos_list, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -55,10 +61,17 @@ def producto_list(request):
 
 def producto_detail(request, pk):
     producto = get_object_or_404(Product, pk=pk)
-    # Obtener 4 productos relacionados de la misma categoría, excluyendo el actual
     related_products = Product.objects.filter(category=producto.category).exclude(pk=producto.pk)[:4]
+    influencer_profile = None
+    if request.user.is_authenticated:
+        influencer_profile = getattr(request.user, 'influencer_profile', None)
+    # Obtener tallas disponibles para el producto
+    tallas_disponibles = producto.stocks.filter(cantidad__gt=0).values_list('talla', flat=True)
     context = {
         'producto': producto,
         'related_products': related_products,
+        'user': request.user,
+        'influencer_profile': influencer_profile,
+        'tallas_disponibles': tallas_disponibles,
     }
     return render(request, 'tienda/producto_detail.html', context)

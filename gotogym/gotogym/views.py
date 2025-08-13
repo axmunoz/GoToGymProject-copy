@@ -16,7 +16,14 @@ def manage_superusers(request):
                 user.save(update_fields=['is_superuser', 'is_staff'])
             elif action == 'remove_super':
                 user.is_superuser = False
-                user.save(update_fields=['is_superuser'])
+                user.is_staff = False
+                user.save(update_fields=['is_superuser', 'is_staff'])
+            elif action == 'remove_staff':
+                user.is_staff = False
+                user.save(update_fields=['is_staff'])
+            elif action == 'make_staff':
+                user.is_staff = True
+                user.save(update_fields=['is_staff'])
         except Exception:
             pass
     users = User.objects.all().order_by('username')

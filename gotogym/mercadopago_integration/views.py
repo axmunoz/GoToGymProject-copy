@@ -1,59 +1,51 @@
-import json
-from django.http import JsonResponse, HttpResponseBadRequest
-from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
+from django.shortcuts import render
+
+def mercadopago_checkout(request):
+    return render(request, 'mercadopago_integration/checkout.html', {
+        'mercadopago_public_key': settings.MERCADOPAGO_PUBLIC_KEY
+    })
 import mercadopago
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def crear_preferencia(request):
     if request.method == 'POST':
-        access_token = getattr(settings, 'MP_ACCESS_TOKEN', None)
-        if not access_token:
-            return HttpResponseBadRequest('Access token not configured')
-        sdk = mercadopago.SDK(access_token)
-        title = request.POST.get('title', 'Pago carrito')
-        quantity = int(request.POST.get('quantity', 1))
-        unit_price_str = request.POST.get('unit_price', '0')
-        unit_price = float(unit_price_str.replace(',', '.'))
-        # Construir back_urls para redirigir después del pago
-        # MercadoPago requiere que back_urls.success sea una URL pública (no localhost)
-        # Puedes usar temporalmente ngrok o una URL de prueba pública
-        # Ejemplo: "https://tusitio.com/carrito/?collection_status=approved"
-        # Para pruebas locales, MercadoPago puede rechazar localhost
-        public_base_url = "https://d4ed65101df0.ngrok-free.app/es/carrito/"  # Cambia esto por tu dominio real en producción
-        back_urls = {
-            "success": public_base_url + "/carrito/?collection_status=approved",
-            "pending": public_base_url + "/carrito/?collection_status=pending",
-            "failure": public_base_url + "/carrito/?collection_status=rejected",
-        }
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
         preference_data = {
             "items": [
                 {
-                    "title": title,
-                    "quantity": quantity,
-                    "unit_price": unit_price,
-                    "currency_id": "COP"
+                    "title": "Pago carrito",
+                    "quantity": 1,
+                    "unit_price": float(request.POST.get('unit_price', 100.0)),
                 }
             ],
+            "back_urls": {
+                "success": f"{settings.SITE_URL}/mercadopago/success/",
+                "failure": f"{settings.SITE_URL}/mercadopago/failure/",
+                "pending": f"{settings.SITE_URL}/mercadopago/pending/"
+            },
             "auto_return": "approved",
-            "back_urls": back_urls,
-            "payment_methods": {
-                "excluded_payment_types": [],
-                "installments": 1
-            }
         }
-        # Solo agregar 'payer' si el email no está vacío
-        payer_email = request.POST.get('payer_email', '').strip()
-        if payer_email:
-            preference_data["payer"] = {"email": payer_email}
-        preference_response = sdk.preference().create(preference_data)
-        if preference_response["status"] == 201:
-            return JsonResponse({"id": preference_response["response"]["id"]})
-        else:
-            # Devuelve el error real de MercadoPago para depuración
-            error_message = preference_response.get("response", {}).get("message", "No se pudo crear la preferencia")
+        try:
+            preference_response = sdk.preference().create(preference_data)
+            if 'response' in preference_response and 'id' in preference_response['response']:
+                return JsonResponse({
+                    'id': preference_response['response']['id']
+                })
+            else:
+                return JsonResponse({
+                    'error': preference_response.get('message', 'Error desconocido'),
+                    'response': preference_response
+                }, status=400)
+        except Exception as e:
             return JsonResponse({
-                "error": error_message,
-                "mp_response": preference_response.get("response", {})
-            }, status=400)
-    return HttpResponseBadRequest('Método no permitido')
+                'error': str(e)
+            }, status=500)
+    return JsonResponse({"error": "Método no permitido"}, status=405)
+
+@csrf_exempt
+def webhook_pago(request):
+    # Aquí puedes procesar la notificación de MercadoPago
+    return HttpResponse('Webhook recibido', status=200)

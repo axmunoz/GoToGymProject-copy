@@ -1,6 +1,15 @@
+
 from django import template
 
 register = template.Library()
+
+def get_stock(stocks, talla):
+    """Devuelve la cantidad de stock para la talla dada o 0."""
+    stock_obj = next((s for s in stocks if getattr(s, 'talla', None) == talla), None)
+    if stock_obj is not None:
+        return getattr(stock_obj, 'cantidad', 0)
+    return 0
+register.filter('get_stock', get_stock)
 
 def intcomma_custom(value):
     try:

@@ -21,10 +21,10 @@
       <div class="flex flex-col w-full">
         <span class="text-xs text-[#1e3a8a] font-semibold mb-1 tracking-wide flex items-center gap-1">
           <span class="material-icons text-[#60a5fa] text-base align-middle">key</span>
-          Código de Referido
+          Código de Cupón
         </span>
         <div class="flex items-center gap-2 mt-1">
-          <span id="referral-code" class="font-mono text-lg text-[#093f62] bg-white px-5 py-2 rounded-full border-2 border-[#60a5fa] tracking-widest select-all shadow-sm group-hover:bg-[#e0e7ef]/60 transition">{{ referral_code }}</span>
+          <span id="referral-code" class="font-mono text-lg text-[#093f62] bg-white px-5 py-2 rounded-full border-2 border-[#60a5fa] tracking-widest select-all shadow-sm group-hover:bg-[#e0e7ef]/60 transition">{{ coupon_code }}</span>
           <button type="button" onclick="copyReferralCode()" class="bg-[#60a5fa] hover:bg-[#1e3a8a] text-[#093f62] hover:text-white font-semibold px-3 py-2 rounded-full shadow transition-all flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-[#60a5fa] focus:ring-offset-2" title="Copiar código">
             <span class="material-icons text-base align-middle">content_copy</span>
           </button>
@@ -51,29 +51,45 @@
     </div>
   </div>
   
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 animate-fade-in-up">
-    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-[#093f62]/10 hover:scale-105 transition group">
-      <span class="material-icons mb-2 text-[#1e40af] text-4xl bg-[#e0e7ef] bg-opacity-80 rounded-full p-2 group-hover:bg-[#1e40af] group-hover:text-white transition">group</span>
-      <div class="text-3xl font-bold text-[#1e40af]">2,847</div>
-      <div class="text-xs text-[#1e40af] mt-2">Personas Referidas</div>
+  <div class="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8 animate-fade-in-up">
+    <!-- Valor de ventas generadas (completadas) -->
+    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-green-200">
+      <span class="material-icons mb-2 text-green-600 text-4xl bg-green-100 rounded-full p-2">attach_money</span>
+      <div class="text-3xl font-bold text-green-700">${{ valor_ventas_completadas|floatformat:2 }}</div>
+      <div class="text-xs text-green-700 mt-2">Valor de ventas generadas (completadas)</div>
     </div>
-    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-[#fb923c]/10 hover:scale-105 transition group">
-      <span class="material-icons mb-2 text-[#fb923c] text-4xl bg-[#fef3c7] bg-opacity-80 rounded-full p-2 group-hover:bg-[#fb923c] group-hover:text-white transition">shopping_cart</span>
-      <div class="text-3xl font-bold text-[#fb923c]">1,289</div>
-      <div class="text-xs text-[#fb923c] mt-2">Ventas Generadas</div>
+    <!-- Valor de ventas pendientes -->
+    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-blue-200">
+      <span class="material-icons mb-2 text-blue-600 text-4xl bg-blue-100 rounded-full p-2">pending_actions</span>
+      <div class="text-3xl font-bold text-blue-700">${{ valor_ventas_pendientes|floatformat:2 }}</div>
+      <div class="text-xs text-blue-700 mt-2">Valor de ventas pendientes</div>
     </div>
-    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-[#22c55e]/10 hover:scale-105 transition group">
-      <span class="material-icons mb-2 text-[#22c55e] text-4xl bg-[#bbf7d0] bg-opacity-80 rounded-full p-2 group-hover:bg-[#22c55e] group-hover:text-white transition">paid</span>
-      <div class="text-3xl font-bold text-[#22c55e]">$18,947</div>
-      <div class="text-xs text-[#22c55e] mt-2">Ganancias Totales</div>
+    <!-- Personas referidas (completadas) -->
+    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-green-200">
+      <span class="material-icons mb-2 text-green-600 text-4xl bg-green-100 rounded-full p-2">person_add_alt_1</span>
+      <div class="text-3xl font-bold text-green-700">{{ referidos_completado }}</div>
+      <div class="text-xs text-green-700 mt-2">Personas referidas (completadas)</div>
     </div>
-    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-[#a21caf]/10 hover:scale-105 transition group">
-      <span class="material-icons mb-2 text-[#a21caf] text-4xl bg-[#f3e8ff] bg-opacity-80 rounded-full p-2 group-hover:bg-[#a21caf] group-hover:text-white transition">trending_up</span>
-      <div class="text-3xl font-bold text-[#a21caf]">45.3%</div>
-      <div class="text-xs text-[#a21caf] mt-2">Tasa de Conversión</div>
+    <!-- Personas referidas (pendientes) -->
+    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-blue-200">
+      <span class="material-icons mb-2 text-blue-600 text-4xl bg-blue-100 rounded-full p-2">person_add</span>
+      <div class="text-3xl font-bold text-blue-700">{{ referidos_pendiente }}</div>
+      <div class="text-xs text-blue-700 mt-2">Personas referidas (pendientes)</div>
+    </div>
+    <!-- Comisión pendiente cuando la venta esté completada -->
+    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-yellow-200">
+      <span class="material-icons mb-2 text-yellow-600 text-4xl bg-yellow-100 rounded-full p-2">hourglass_top</span>
+      <div class="text-3xl font-bold text-yellow-700">${{ comision_pendiente|floatformat:2 }}</div>
+      <div class="text-xs text-yellow-700 mt-2">Comisión pendiente (ventas pendientes)</div>
+    </div>
+    <!-- Comisión por venta completada -->
+    <div class="bg-white rounded-xl p-6 shadow text-center flex flex-col items-center border-2 border-purple-200">
+      <span class="material-icons mb-2 text-purple-600 text-4xl bg-purple-100 rounded-full p-2">paid</span>
+      <div class="text-3xl font-bold text-purple-700">${{ comision_completada|floatformat:2 }}</div>
+      <div class="text-xs text-purple-700 mt-2">Comisión por venta completada</div>
     </div>
   </div>
-  <!-- Tabla elegante -->
+ 
   <div class="bg-white rounded-2xl p-8 shadow-xl mt-8 animate-fade-in-up">
     <span class="font-bold text-[#093f62] text-lg mb-6 block">Historial de Ventas Recientes</span>
     <div class="overflow-x-auto">
@@ -84,59 +100,39 @@
             <th class="px-5 py-3 text-left">Cliente</th>
             <th class="px-5 py-3 text-left">Producto</th>
             <th class="px-5 py-3 text-left">Valor Venta</th>
+            <th class="px-5 py-3 text-left">% Comisión</th>
             <th class="px-5 py-3 text-left">Tu Comisión</th>
             <th class="px-5 py-3 text-left rounded-r-xl">Estado</th>
           </tr>
         </thead>
         <tbody>
+          {% for compra in compras %}
           <tr class="bg-white/80 hover:bg-[#e7c98a]/20 transition rounded-xl shadow-sm animate-fade-in-up">
-            <td class="px-5 py-3 rounded-l-xl text-[#093f62]">18 Nov 2024</td>
-            <td class="px-5 py-3 text-[#093f62]">Ana Martínez</td>
-            <td class="px-5 py-3 text-[#093f62]">Curso de Marketing Digital Premium</td>
-            <td class="px-5 py-3 text-[#093f62]">$1,990.00</td>
-            <td class="px-5 py-3 text-[#093f62]">$198.65</td>
-            <td class="px-5 py-3 rounded-r-xl"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full shadow">COMPLETADA</span></td>
+            <td class="px-5 py-3 rounded-l-xl text-[#093f62]">{{ compra.fecha|date:'d M Y' }}</td>
+            <td class="px-5 py-3 text-[#093f62]">
+              {% if compra.usuario %}
+                {{ compra.usuario.get_full_name|default:compra.usuario.username }}
+              {% elif compra.email %}
+                {{ compra.email }}
+              {% else %}
+                Invitado
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-[#093f62]">
+              {% for producto in compra.productos.all %}
+                {{ producto.name }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </td>
+            <td class="px-5 py-3 text-[#093f62]">${{ compra.monto|floatformat:2 }}</td>
+            <td class="px-5 py-3 text-[#093f62]">{{ compra.influencer.commission_percent|floatformat:2 }}%</td>
+            <td class="px-5 py-3 text-[#093f62]">${{ compra.comision|floatformat:2 }}</td>
+            <td class="px-5 py-3 rounded-r-xl">
+              <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full shadow">{{ compra.estado|upper }}</span>
+            </td>
           </tr>
-          <tr class="bg-white/80 hover:bg-[#e7c98a]/20 transition rounded-xl shadow-sm animate-fade-in-up">
-            <td class="px-5 py-3 rounded-l-xl text-[#093f62]">14 Nov 2024</td>
-            <td class="px-5 py-3 text-[#093f62]">Carlos López</td>
-            <td class="px-5 py-3 text-[#093f62]">Pack de Plantillas + Recursos</td>
-            <td class="px-5 py-3 text-[#093f62]">$299.00</td>
-            <td class="px-5 py-3 text-[#093f62]">$42.15</td>
-            <td class="px-5 py-3 rounded-r-xl"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full shadow">COMPLETADA</span></td>
-          </tr>
-          <tr class="bg-white/80 hover:bg-[#e7c98a]/20 transition rounded-xl shadow-sm animate-fade-in-up">
-            <td class="px-5 py-3 rounded-l-xl text-[#093f62]">13 Nov 2024</td>
-            <td class="px-5 py-3 text-[#093f62]">Laura Rodríguez</td>
-            <td class="px-5 py-3 text-[#093f62]">Consultoría Estratégica 1:1</td>
-            <td class="px-5 py-3 text-[#093f62]">$420.00</td>
-            <td class="px-5 py-3 text-[#093f62]">$67.50</td>
-            <td class="px-5 py-3 rounded-r-xl"><span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full shadow">PENDIENTE</span></td>
-          </tr>
-          <tr class="bg-white/80 hover:bg-[#e7c98a]/20 transition rounded-xl shadow-sm animate-fade-in-up">
-            <td class="px-5 py-3 rounded-l-xl text-[#093f62]">12 Nov 2024</td>
-            <td class="px-5 py-3 text-[#093f62]">Miguel Torres</td>
-            <td class="px-5 py-3 text-[#093f62]">Ebook + Masterclases</td>
-            <td class="px-5 py-3 text-[#093f62]">$149.00</td>
-            <td class="px-5 py-3 text-[#093f62]">$22.35</td>
-            <td class="px-5 py-3 rounded-r-xl"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full shadow">COMPLETADA</span></td>
-          </tr>
-          <tr class="bg-white/80 hover:bg-[#e7c98a]/20 transition rounded-xl shadow-sm animate-fade-in-up">
-            <td class="px-5 py-3 rounded-l-xl text-[#093f62]">11 Nov 2024</td>
-            <td class="px-5 py-3 text-[#093f62]">Sofía Herrera</td>
-            <td class="px-5 py-3 text-[#093f62]">Certificación Profesional</td>
-            <td class="px-5 py-3 text-[#093f62]">$399.00</td>
-            <td class="px-5 py-3 text-[#093f62]">$89.85</td>
-            <td class="px-5 py-3 rounded-r-xl"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full shadow">COMPLETADA</span></td>
-          </tr>
-          <tr class="bg-white/80 hover:bg-[#e7c98a]/20 transition rounded-xl shadow-sm animate-fade-in-up">
-            <td class="px-5 py-3 rounded-l-xl text-[#093f62]">10 Nov 2024</td>
-            <td class="px-5 py-3 text-[#093f62]">Roberto Silva</td>
-            <td class="px-5 py-3 text-[#093f62]">Workshop Intensivo</td>
-            <td class="px-5 py-3 text-[#093f62]">$199.00</td>
-            <td class="px-5 py-3 text-[#093f62]">$28.85</td>
-            <td class="px-5 py-3 rounded-r-xl"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full shadow">COMPLETADA</span></td>
-          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-gray-400 py-6">Aún no tienes compras referidas.</td></tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>

@@ -3,6 +3,9 @@ import base64
 import requests
 
 class AlegraAPI:
+    def get_bills(self):
+        """Obtiene las facturas de proveedor (egresos) desde Alegra."""
+        return self.get('bills')
     BASE_URL = 'https://api.alegra.com/api/v1/'
 
     def __init__(self, email=None, api_token=None):
@@ -29,6 +32,16 @@ class AlegraAPI:
     # clientes
     def get_clients(self):
         return self.get('contacts')
+    
+    def create_client(self, data):
+        """
+        Crea un cliente en Alegra.
+        data: dict con los datos del cliente (name, email, phonePrimary, etc)
+        """
+        url = self.BASE_URL + 'contacts'
+        response = requests.post(url, headers=self.headers, json=data)
+        response.raise_for_status()
+        return response.json()
 
     #  facturas
     def get_invoices(self):

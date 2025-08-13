@@ -1,10 +1,15 @@
-from hubspot_integration.hubspot_utils import get_all_hubspot_contacts
-def list_hubspot_contacts(request):
-    contacts = get_all_hubspot_contacts()
-    return render(request, 'hubspot_integration/list_contacts.html', {'contacts': contacts})
+
 from django.shortcuts import render
 from django.contrib import messages
-from hubspot_integration.hubspot_utils import create_hubspot_contact
+from django.core.paginator import Paginator
+from hubspot_integration.hubspot_utils import get_all_hubspot_contacts, create_hubspot_contact
+
+def list_hubspot_contacts(request):
+    contacts = get_all_hubspot_contacts()
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(contacts, 10)  # 10 contactos por página
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'hubspot_integration/list_contacts.html', {'contacts': page_obj.object_list, 'page_obj': page_obj})
 
 def crm_hubspot_view(request):
     if request.method == 'POST':

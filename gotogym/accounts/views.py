@@ -13,6 +13,7 @@ import os
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse
+from carrito.models import CarritoHistorial, CarritoHistorialItem
 
 from .forms import EditProfileForm
 
@@ -86,27 +87,58 @@ def login_view(request):
         user = None
         if user_obj:
             user = authenticate(request, username=user_obj.email, password=password)
-        if user is not None:
-            # Si es admin y le falta nombre o apellido, redirigir a editar perfil
-            if user.is_superuser and (not user.first_name or not user.last_name or user.first_name == 'None' or user.last_name == 'None'):
+            if user is not None:
+                # Si es admin y le falta nombre o apellido, redirigir a editar perfil
+                if user.is_superuser and (not user.first_name or not user.last_name or user.first_name == 'None' or user.last_name == 'None'):
+                    login(request, user)
+                    return redirect(reverse('edit_profile'))
                 login(request, user)
-                return redirect(reverse('edit_profile'))
-            login(request, user)
-            return redirect('/')
+                # Sincronizar carrito de sesión con historial pendiente
+                try:
+                    carrito_historial = CarritoHistorial.objects.get(usuario=user, estado='pendiente')
+                    cart_session = {}
+                    for item in carrito_historial.items.all():
+                        key = f"{item.product.id}:{item.talla if item.talla else ''}"
+                        cart_session[key] = item.cantidad
+                    request.session['cart'] = cart_session
+                    # Restaurar cupón y total_pagar si existen
+                    if carrito_historial.cupon_code:
+                        # Recalcular descuento para mostrar en sesión
+                        total_sin_descuento = sum(
+                            (item.product.price * item.cantidad)
+                            for item in carrito_historial.items.all()
+                        )
+                        envio = 20000 if cart_session else 0
+                        base_cupon = total_sin_descuento + envio
+                        discount_value = int(base_cupon * 0.10)
+                        request.session['coupon'] = discount_value
+                        request.session['coupon_code'] = carrito_historial.cupon_code
+                        request.session['coupon_percent'] = 10
+                    else:
+                        request.session['coupon'] = 0
+                        request.session['coupon_code'] = ''
+                        request.session['coupon_percent'] = 0
+                except CarritoHistorial.DoesNotExist:
+                    request.session['cart'] = {}
+                    request.session['coupon'] = 0
+                    request.session['coupon_code'] = ''
+                    request.session['coupon_percent'] = 0
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if next_url and '/carrito' in next_url:
+                    return redirect(next_url)
+                return redirect('/')
         else:
             error_message = _('Credenciales incorrectas')
     return render(request, 'accounts/login.html', {'error_message': error_message, 'show_logo': show_logo})
 
 @login_required
-
-@login_required
 def profile_view(request):
+    carritos_pagados = CarritoHistorial.objects.filter(usuario=request.user, estado='pagado').order_by('-fecha_actualizacion')
     return render(request, 'accounts/profile.html', {
         'user': request.user,
         'base_template': '_base_dasboard.html' if request.user.is_superuser else 'base.html',
+        'carritos_pagados': carritos_pagados,
     })
-
-
 
 # View to edit user profile
 @login_required
@@ -132,7 +164,7 @@ def edit_profile(request):
                 user.image = request.FILES['image']
             user.save()
             print('IMAGEN GUARDADA:', user.image)
-            messages.success(request, _('Perfil actualizado correctamente.'))
+            
             return redirect('profile')
         else:
             print('ERRORES FORMULARIO:', form.errors)

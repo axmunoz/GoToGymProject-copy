@@ -3,77 +3,196 @@
 {% load i18n %}
 {% load widget_tweaks %}
 {% block content %}
-<div class="max-w-5xl mx-auto bg-white/95 p-8 rounded-3xl shadow-2xl border border-gray-200 mt-10">
-  <h2 class="text-3xl font-extrabold mb-6 text-[#093f62] flex items-center gap-3 drop-shadow-sm">
-    <span class="material-icons-outlined text-4xl text-[#C5A46B]">edit</span>
-    {% trans "Editar Artículo" %}
-  </h2>
-  <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200 mt-10">
+  <div class="rounded-t-2xl bg-gradient-to-r from-[#3b82f6] to-[#6366f1] px-8 py-6">
+    <h2 class="text-3xl font-extrabold text-white flex items-center gap-3 drop-shadow-sm">
+      <span class="material-icons-outlined text-4xl">edit</span>
+      Editar Artículo
+    </h2>
+    <p class="text-white/90 mt-1">Modifica los campos y guarda los cambios</p>
+  </div>
+  {% if form.errors %}
+    <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
+      <strong>Errores en el formulario:</strong>
+      <ul>
+        {% for field, errors in form.errors.items %}
+          <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+  <form id="editPostForm" method="post" enctype="multipart/form-data" class="p-8 space-y-7">
     {% csrf_token %}
-    <!-- Columna 1 -->
-    <div class="space-y-6">
+    <!-- Título -->
+    <div>
+      <label class="block text-base font-semibold text-gray-700 mb-1 flex items-center gap-2"><span class="material-icons-outlined text-blue-500">title</span> Título del Post</label>
+      {% render_field form.title class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white shadow-sm transition placeholder-gray-400 text-gray-800" placeholder="Escribe un título atractivo..." %}
+      {% for error in form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+    </div>
+    <!-- Autor y Categoría -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label for="{{ form.title.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">{% trans "Título" %}<span class="text-red-500">*</span></label>
-        {% render_field form.title class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition placeholder-gray-400 text-gray-800" %}
-        {% for error in form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-      <div>
-        <label for="{{ form.author.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">{% trans "Autor" %}</label>
-        {% render_field form.author class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
+        <label class="block text-base font-semibold text-gray-700 mb-1 flex items-center gap-2"><span class="material-icons-outlined text-blue-500">person</span> Autor</label>
+        {% render_field form.author class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white shadow-sm transition text-gray-800" %}
         {% for error in form.author.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
       </div>
       <div>
-        <label for="{{ form.category.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">{% trans "Categoría" %}</label>
-        {% render_field form.category class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800" %}
+        <label class="block text-base font-semibold text-gray-700 mb-1 flex items-center gap-2"><span class="material-icons-outlined text-blue-500">category</span> Categoría</label>
+        {% render_field form.category class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white shadow-sm transition text-gray-800" %}
         {% for error in form.category.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
       </div>
     </div>
-    <!-- Columna 2 -->
-    <div class="space-y-6 flex flex-col justify-between">
+    <!-- Resumen y Imagen -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label for="{{ form.excerpt.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">{% trans "Resumen" %}</label>
-        {% render_field form.excerpt class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800 min-h-[60px] resize-none" %}
+        <label class="block text-base font-semibold text-gray-700 mb-1 flex items-center gap-2"><span class="material-icons-outlined text-blue-500">short_text</span> Resumen Corto</label>
+        {% render_field form.excerpt class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white shadow-sm transition text-gray-800 min-h-[170px] resize-none" placeholder="Escribe un resumen breve que aparecerá en las vistas previas del blog..." maxlength="200" %}
+        <div class="text-right text-xs text-gray-400 mt-1"><span id="excerptCount">0</span>/200 caracteres</div>
         {% for error in form.excerpt.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
       </div>
       <div>
-        <label for="{{ form.content.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-1">{% trans "Contenido" %}</label>
-        {% render_field form.content class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:border-[#C5A46B] focus:ring-2 focus:ring-[#C5A46B]/30 bg-white shadow-sm transition text-gray-800 min-h-[120px] resize-y" %}
-        {% for error in form.content.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-    </div>
-    <!-- Columna 3 -->
-    <div class="space-y-6 flex flex-col justify-between">
-      <div>
-        <label class="block text-base font-semibold text-gray-700 mb-1">Slug</label>
-        <input type="text" class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed" value="(se genera automáticamente)" readonly>
-      </div>
-      <div>
-        <label for="id_featured" class="block text-base font-semibold text-gray-700 mb-1">{% trans "Imagen destacada" %}</label>
-        <div class="relative flex flex-col items-center justify-center bg-gray-100 border border-dashed border-gray-300 rounded-xl h-48 overflow-hidden shadow-inner cursor-pointer group transition-all">
-          {% if form.featured.value or post.featured %}
-            <img id="imagePreview" src="{% if form.featured.value %}{{ form.featured.value.url }}{% elif post.featured %}{{ post.featured.url }}{% else %}{% static 'images/placeholder.webp' %}{% endif %}" class="h-44 w-44 object-contain mx-auto rounded-xl shadow" />
-          {% else %}
-            <img id="imagePreview" src="{% static 'images/placeholder.webp' %}" class="h-44 w-44 object-contain mx-auto rounded-xl shadow hidden" />
-          {% endif %}
-          <span id="placeholder-icon" class="text-gray-400 material-icons-outlined text-5xl group-hover:text-[#C5A46B] transition">image</span>
-          <span id="placeholder-text" class="text-gray-500 mt-2 text-sm group-hover:text-[#C5A46B] transition px-2 text-center">Haz clic aquí para subir una imagen</span>
-          {% render_field form.featured class="absolute inset-0 opacity-0 cursor-pointer z-10" %}
+        <label class="block text-base font-semibold text-gray-700 mb-1 flex items-center gap-2"><span class="material-icons-outlined text-blue-500">image</span> Imagen Destacada</label>
+        <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 relative w-44 h-52 mx-auto p-0">
+          <div id="dropzoneArea" class="flex flex-col items-center justify-center w-full h-full {% if form.featured.value or post.featured %}hidden{% endif %}">
+            <span class="material-icons-outlined text-5xl text-blue-400 mb-2">add_photo_alternate</span>
+            <span class="font-semibold text-gray-500 text-base">Arrastra imágenes</span>
+            <span class="text-gray-400 text-sm mb-2">o haz clic para seleccionar</span>
+            <label class="mt-2" id="fileLabel">
+              <span class="inline-block px-3 py-1 rounded bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold cursor-pointer hover:from-blue-600 hover:to-purple-600 transition text-sm" id="selectBtn">Seleccionar</span>
+              <input type="file" name="featured" id="id_featured" class="hidden" accept="image/*">
+            </label>
+          </div>
+          <div id="imageArea" class="relative flex items-center justify-center w-full h-full {% if not form.featured.value and not post.featured %}hidden{% endif %}">
+            <img id="imagePreview" src="{% if form.featured.value %}{{ form.featured.value.url }}{% elif post.featured %}{{ post.featured.url }}{% else %}{% static 'images/placeholder.webp' %}{% endif %}" class="h-32 w-32 object-contain rounded-xl shadow my-2" />
+            <button type="button" id="removeImageBtn" class="absolute top-0 right-0 bg-white rounded-full shadow p-1 text-gray-500 hover:bg-red-500 hover:text-white transition text-xs">
+              <span class="material-icons-outlined text-base">close</span>
+            </button>
+          </div>
+          
         </div>
-        {% for error in form.featured.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+  {% for error in form.featured.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const previewImg = document.getElementById('imagePreview');
+          const placeholder = "{% static 'images/placeholder.webp' %}";
+          let imageInput = document.getElementById('id_featured');
+          let removeBtn = document.getElementById('removeImageBtn');
+          const selectBtn = document.getElementById('selectBtn');
+          const dropzoneArea = document.getElementById('dropzoneArea');
+          const imageArea = document.getElementById('imageArea');
+          const fileLabel = document.getElementById('fileLabel');
+
+          function resetInputFile(input) {
+            const newInput = input.cloneNode(true);
+            newInput.value = '';
+            newInput.id = input.id;
+            newInput.name = input.name;
+            input.parentNode.replaceChild(newInput, input);
+            return newInput;
+          }
+
+          function showDropzone() {
+            dropzoneArea.classList.remove('hidden');
+            imageArea.classList.add('hidden');
+          }
+          function showImageArea() {
+            dropzoneArea.classList.add('hidden');
+            imageArea.classList.remove('hidden');
+          }
+
+          function onImageChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function(evt) {
+                previewImg.src = evt.target.result;
+                showImageArea();
+              };
+              reader.readAsDataURL(file);
+            } else {
+              showDropzone();
+            }
+          }
+
+          function rebindInput() {
+            imageInput = document.getElementById('id_featured');
+            if (imageInput) {
+              imageInput.addEventListener('change', onImageChange);
+            }
+          }
+
+          // Hacer toda el área de dropzone clickeable
+          if (dropzoneArea) {
+            dropzoneArea.addEventListener('click', function(e) {
+              if (e.target !== imageInput) {
+                e.preventDefault();
+                imageInput.click();
+              }
+            });
+          }
+
+          if (imageInput && previewImg && removeBtn && dropzoneArea && imageArea) {
+            imageInput.addEventListener('change', onImageChange);
+            if (selectBtn) {
+              selectBtn.onclick = function(e) {
+                e.preventDefault();
+                imageInput.click();
+              };
+            }
+            removeBtn.addEventListener('click', function() {
+              imageInput = resetInputFile(imageInput);
+              rebindInput();
+              showDropzone();
+            });
+          }
+        });
+        </script>
       </div>
     </div>
-    <div class="md:col-span-3 flex justify-end gap-3 mt-8">
-      <a href="{% url 'blog:dashboard' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
-        <span class="material-icons-outlined">arrow_back</span> {% trans "Cancelar" %}
+    <!-- Slug -->
+    <div>
+      <label class="block text-base font-semibold text-gray-700 mb-1 flex items-center gap-2"><span class="material-icons-outlined text-blue-500">link</span> Slug (URL amigable) <span class="text-xs text-gray-400 ml-2">- Se genera automáticamente</span></label>
+      <div class="flex items-center gap-2">
+        <span class="px-3 py-2 rounded-l-lg bg-gray-100 border border-r-0 border-gray-200 text-gray-400 text-sm select-none">miblog.com/post/</span>
+        <input type="text" class="w-full px-4 py-2 rounded-r-lg border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed" value="se-genera-automaticamente" readonly>
+      </div>
+    </div>
+    <!-- Contenido -->
+    <div>
+      <label class="block text-base font-semibold text-gray-700 mb-1 flex items-center gap-2"><span class="material-icons-outlined text-blue-500">edit</span> Contenido del Post</label>
+      <div class="border border-gray-300 rounded-lg overflow-hidden">
+  <div id="quill-editor" class="bg-white min-h-[180px]" style="height: 260px;"></div>
+  <input type="hidden" name="content" id="id_content" required>
+      </div>
+      {% for error in form.content.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+    </div>
+    <!-- Botones -->
+    <div class="flex flex-col sm:flex-row gap-4 pt-2">
+      <a href="{% url 'blog:dashboard' %}" class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 transition font-semibold">
+        <span class="material-icons-outlined">close</span> Cancelar
       </a>
-      <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#093f62] text-white font-semibold shadow-md hover:bg-[#C5A46B] hover:text-[#093f62] transition">
-        <span class="material-icons-outlined">save</span> {% trans "Guardar cambios" %}
+      <button type="submit" class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition">
+        <span class="material-icons-outlined">save</span> Guardar Cambios
       </button>
     </div>
   </form>
 </div>
+<!-- Quill.js CDN -->
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
+// Contador de caracteres para el resumen y Quill único
 document.addEventListener('DOMContentLoaded', function() {
+  var excerpt = document.getElementById('{{ form.excerpt.id_for_label }}');
+  var count = document.getElementById('excerptCount');
+  if (excerpt && count) {
+    excerpt.addEventListener('input', function() {
+      count.textContent = excerpt.value.length;
+    });
+    count.textContent = excerpt.value.length;
+  }
+  // Imagen preview
   const previewImg = document.getElementById('imagePreview');
   const imageInput = document.getElementById('id_featured');
   const placeholderIcon = document.getElementById('placeholder-icon');
@@ -86,18 +205,132 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.onload = function(evt) {
           previewImg.src = evt.target.result;
           previewImg.classList.remove('hidden');
-          placeholderIcon.classList.add('hidden');
-          placeholderText.classList.add('hidden');
+          if (placeholderIcon) placeholderIcon.classList.add('hidden');
+          if (placeholderText) placeholderText.classList.add('hidden');
         };
         reader.readAsDataURL(file);
       } else {
         previewImg.src = '';
         previewImg.classList.add('hidden');
-        placeholderIcon.classList.remove('hidden');
-        placeholderText.classList.remove('hidden');
+        if (placeholderIcon) placeholderIcon.classList.remove('hidden');
+        if (placeholderText) placeholderText.classList.remove('hidden');
       }
     });
   }
-});
-</script>
+  // Quill editor para el contenido del post (solo una vez)
+  var quill = new Quill('#quill-editor', {
+    theme: 'snow',
+    placeholder: 'Escribe el contenido del post...'
+    ,modules: {
+      toolbar: [
+        [{ 'font': [] }, { 'size': [ 'small', false, 'large', 'huge' ] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'align': [] }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        ['link', 'image'],
+        ['clean']
+      ],
+      history: {
+        delay: 500,
+        maxStack: 100,
+        userOnly: true
+      }
+    }
+  });
+  // Cargar contenido inicial si existe (edición)
+  var initialContent = `{% if form.content.value %}{{ form.content.value|safe|escapejs }}{% endif %}`;
+  if (initialContent) {
+    quill.root.innerHTML = initialContent;
+  }
+  // Sincronizar el contenido HTML con el campo oculto en tiempo real
+  var contentInput = document.getElementById('id_content');
+  quill.on('text-change', function() {
+    var html = quill.root.innerHTML.trim();
+    contentInput.value = html;
+  });
+  // Validar antes de enviar
+  var form = document.getElementById('editPostForm');
+  form.addEventListener('submit', function(e) {
+    var html = quill.root.innerHTML.trim();
+    contentInput.value = html;
+    if (html === '' || html === '<p><br></p>') {
+      e.preventDefault();
+      alert('El contenido del post no puede estar vacío.');
+      return false;
+    }
+  });
+
+  // Dropzone y preview para imagen destacada (solo una vez)
+  document.addEventListener('DOMContentLoaded', function() {
+    const previewImg = document.getElementById('imagePreview');
+    const placeholder = "{% static 'images/placeholder.webp' %}";
+    let imageInput = document.getElementById('id_featured');
+    let removeBtn = document.getElementById('removeImageBtn');
+    const selectBtn = document.getElementById('selectBtn');
+    const dropzoneArea = document.getElementById('dropzoneArea');
+    const imageArea = document.getElementById('imageArea');
+
+    function resetInputFile(input) {
+      const newInput = input.cloneNode(true);
+      newInput.value = '';
+      newInput.id = input.id;
+      newInput.name = input.name;
+      input.parentNode.replaceChild(newInput, input);
+      return newInput;
+    }
+
+    function showDropzone() {
+      dropzoneArea.classList.remove('hidden');
+      imageArea.classList.add('hidden');
+    }
+    function showImageArea() {
+      dropzoneArea.classList.add('hidden');
+      imageArea.classList.remove('hidden');
+    }
+
+    function onImageChange(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          previewImg.src = evt.target.result;
+          showImageArea();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        showDropzone();
+      }
+    }
+
+    function rebindInput() {
+      imageInput = document.getElementById('id_featured');
+      if (imageInput) {
+        imageInput.addEventListener('change', onImageChange);
+        if (selectBtn) {
+          selectBtn.onclick = function(e) {
+            e.preventDefault();
+            imageInput.click();
+          };
+        }
+      }
+    }
+
+    if (imageInput && previewImg && removeBtn && dropzoneArea && imageArea) {
+      imageInput.addEventListener('change', onImageChange);
+      if (selectBtn) {
+        selectBtn.onclick = function(e) {
+          e.preventDefault();
+          imageInput.click();
+        };
+      }
+      removeBtn.addEventListener('click', function() {
+        imageInput = resetInputFile(imageInput);
+        rebindInput();
+        showDropzone();
+      });
+    }
+  });
+
+
 {% endblock %}

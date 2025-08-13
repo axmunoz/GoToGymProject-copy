@@ -1,15 +1,28 @@
 # Obtener todos los contactos de HubSpot
 def get_all_hubspot_contacts():
     contacts = []
+    after = None
     try:
-        api_response = client.crm.contacts.basic_api.get_page(limit=100)
-        for obj in api_response.results:
-            properties = obj.properties
-            contacts.append({
-                'email': properties.get('email', ''),
-                'firstname': properties.get('firstname', ''),
-                'lastname': properties.get('lastname', ''),
-            })
+        while True:
+            api_response = client.crm.contacts.basic_api.get_page(
+                limit=100,
+                after=after,
+                properties=["email", "firstname", "lastname", "createdate"]
+            )
+            for obj in api_response.results:
+                properties = obj.properties
+                contacts.append({
+                    'email': properties.get('email', ''),
+                    'firstname': properties.get('firstname', ''),
+                    'lastname': properties.get('lastname', ''),
+                    'createdate': properties.get('createdate', ''),
+                })
+            if hasattr(api_response, 'paging') and api_response.paging and api_response.paging.next:
+                after = api_response.paging.next.after
+            else:
+                break
+        # Ordenar por fecha de creación descendente (más reciente primero)
+        contacts.sort(key=lambda x: x.get('createdate', ''), reverse=True)
     except Exception as e:
         pass
     return contacts

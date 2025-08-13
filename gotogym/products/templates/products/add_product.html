@@ -5,7 +5,7 @@
     * {
         font-family: 'Inter', sans-serif;
     }
-    /* Estilos personalizados para el formulario de producto */
+    /* Estilos para el formulario de producto */
     .gradient-bg {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
@@ -148,19 +148,19 @@
 {% endif %}
     <div class="max-w-6xl mx-auto px-4">
         <div class="glass-effect rounded-3xl shadow-2xl p-10">
-          <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3 flex items-center justify-center gap-4">
-              Añadir Nuevo Producto
-              <span class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full">
-                  <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                  </svg>
-              </span>
-            </h1>
-            <p class="text-gray-600 text-lg">Complete todos los campos para agregar el producto al inventario</p>
-          </div>
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3 flex items-center justify-center gap-4">
+                Añadir Nuevo Producto
+                <span class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                </span>
+                </h1>
+                <p class="text-gray-600 text-lg">Complete todos los campos para agregar el producto al inventario</p>
+            </div>
 
-            <form id="productForm" class="space-y-8" method="POST" enctype="multipart/form-data">
+            <form id="productForm" class="" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <!-- Fila 1: Nombre, Marca, Categoría -->
                 <div class="form-section">
@@ -176,9 +176,7 @@
                                 </svg>
                                 Nombre del Producto *
                             </label>
-                            <input type="text" id="productName" name="name" required
-                                   class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm"
-                                   placeholder="Ej: iPhone 15 Pro Max">
+                            <input type="text" id="productName" name="name" required class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm" placeholder="Ej: iPhone 15 Pro Max">
                         </div>
 
                         <div class="floating-label">
@@ -190,9 +188,9 @@
                             </label>
                             <select id="brand" name="brand" required class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm">
                                 <option value="">Seleccionar marca</option>
-                {% for marca in marcas %}
-                    <option value="{{ marca.id }}">{{ marca.name }}</option>
-                {% endfor %}
+                            {% for marca in marcas %}
+                                <option value="{{ marca.id }}">{{ marca.name }}</option>
+                            {% endfor %}
                             </select>
                         </div>
 
@@ -205,9 +203,9 @@
                             </label>
                             <select id="category" name="category" required class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/80 backdrop-blur-sm">
                                 <option value="">Seleccionar categoría</option>
-                {% for categoria in categorias %}
-                    <option value="{{ categoria.id }}">{{ categoria.name }}</option>
-                {% endfor %}
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.name }}</option>
+                            {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -219,6 +217,7 @@
                         <div class="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mr-3"></div>
                         INFORMACIÓN DE PRECIOS
                     </h3>
+
                     <div class="grid md:grid-cols-3 gap-6">
                         <div class="floating-label">
                             <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
@@ -229,24 +228,23 @@
                             </label>
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">$</span>
-                                <input type="text" id="price" name="price" step="0.01" min="0" required
-                                       class="input-focus w-full pl-8 pr-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm"
-                                       placeholder="0.00" inputmode="decimal" autocomplete="off">
+                                <input type="text" id="price" name="price" step="0.01" min="0" required class="input-focus w-full pl-8 pr-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm" placeholder="0.00" inputmode="decimal" autocomplete="off">
                             </div>
                         </div>
-
                         <div class="floating-label">
                             <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
                                 <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                 </svg>
                                 Stock *
+                                <span id="stockTotalLabel" class="ml-2 text-green-700 font-bold text-base">(total 0)</span>
                             </label>
-                            <input type="number" id="stock" name="stock" min="0" required
-                                   class="input-focus w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm"
-                                   placeholder="Cantidad disponible">
+                            <button type="button" id="openStockPanelBtn" class="w-full px-3 py-3 rounded-lg bg-gradient-to-r from-green-400 to-emerald-500 text-white font-semibold text-base shadow hover:from-green-500 hover:to-emerald-600 transition-all focus:outline-none focus:ring-2 focus:ring-green-300">
+                                Stock por Talla
+                            </button>
+                            <input type="hidden" name="stock_tallas" id="stock_tallas" value="">
+                            <input type="hidden" name="stock_total" id="stock_total" value="0">
                         </div>
-
                         <div class="floating-label">
                             <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
                                 <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,11 +253,32 @@
                                 Descuento (%)
                             </label>
                             <div class="relative">
-                                <input type="number" id="discount" name="discount" min="0" max="100" step="0.1" class="input-focus w-full px-5 pr-8 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm"
-                                       placeholder="0">
+                                <input type="number" id="discount" name="discount" min="0" max="100" step="0.1" class="input-focus w-full px-5 pr-8 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white/80 backdrop-blur-sm" placeholder="0">
                                 <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">%</span>
                             </div>
                         </div>
+                    </div>
+                    <!-- Panel Stock por Talla fuera del grid, oculto por defecto -->
+                    <div id="stockPanel" class="transition-all duration-300 bg-white/80 border border-green-200 rounded-2xl shadow-xl p-8 mt-4 mb-2 hidden" style="width:100%;max-width:none;box-sizing:border-box;">
+                        <h2 class="text-2xl font-bold mb-6 text-green-700 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                            Configurar Stock
+                        </h2>
+                        <form id="stockBySizeForm" class="space-y-4" autocomplete="off">
+                            <div id="step0Tallas" class="mb-4">
+                                <label class="block text-base font-semibold mb-2">¿Cuántas tallas diferentes tendrá este producto?</label>
+                                        <input type="number" id="numTallasInput" min="1" max="{{ tallas|length }}" value="1" class="w-full border rounded px-3 py-2 text-center mb-4" required />
+                                <button type="button" id="nextStepTallasBtn" class="w-full px-4 py-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Continuar</button>
+                            </div>
+                            <div id="step1Tallas" class="mb-4 hidden">
+                                <label class="block text-sm font-semibold mb-2">Selecciona las tallas y asigna el stock:</label>
+                                <div id="tallasInputsContainer"></div>
+                                <div class="flex justify-between mt-6">
+                                    <button type="button" id="closeStockPanelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-all">Atrás</button>
+                                    <button type="button" id="saveStockPanelBtn" class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-400 to-emerald-500 text-white font-semibold hover:from-green-500 hover:to-emerald-600 transition-all">Guardar</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -405,6 +424,135 @@
     </div>
 
     <script>
+    // Flujo de tallas: paso a paso, UI clara y dinámica
+    document.addEventListener('DOMContentLoaded', function() {
+        var stockPanel = document.getElementById('stockPanel');
+        var openStockPanelBtn = document.getElementById('openStockPanelBtn');
+        var closeStockPanelBtn = document.getElementById('closeStockPanelBtn');
+        var step0 = document.getElementById('step0Tallas');
+        var step1 = document.getElementById('step1Tallas');
+        var numTallasInput = document.getElementById('numTallasInput');
+        var nextStepTallasBtn = document.getElementById('nextStepTallasBtn');
+        var tallasInputsContainer = document.getElementById('tallasInputsContainer');
+        // Ocultar panel al cargar
+        if (stockPanel) {
+            stockPanel.classList.add('hidden');
+            stockPanel.style.maxHeight = '0px';
+            stockPanel.style.overflow = 'hidden';
+            stockPanel.style.transition = 'max-height 0.4s cubic-bezier(0.4,0,0.2,1)';
+        }
+        // Mostrar panel al hacer clic
+        if (openStockPanelBtn && stockPanel) {
+            openStockPanelBtn.addEventListener('click', function() {
+                if (stockPanel.classList.contains('hidden')) {
+                    stockPanel.classList.remove('hidden');
+                    setTimeout(function(){ stockPanel.style.maxHeight = '1000px'; }, 10);
+                    // Mostrar solo el paso 0
+                    if (step0) step0.classList.remove('hidden');
+                    if (step1) step1.classList.add('hidden');
+                } else {
+                    stockPanel.style.maxHeight = '0px';
+                    setTimeout(function(){ stockPanel.classList.add('hidden'); }, 400);
+                }
+            });
+        }
+        // Paso 1: al dar clic en Continuar, mostrar selects e inputs
+        // Renderizar tallas desde Django en un array JS seguro
+        var tallasDisponibles = [
+            {% for talla in tallas %}'{{ talla.nombre|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+        // Mensaje de error para cantidad de tallas
+        var errorMsg = document.createElement('div');
+        errorMsg.className = 'text-red-600 text-sm font-semibold mb-2';
+        errorMsg.style.display = 'none';
+        if (step0 && numTallasInput) {
+            step0.insertBefore(errorMsg, numTallasInput.nextSibling);
+        }
+        if (nextStepTallasBtn && step0 && step1 && tallasInputsContainer && numTallasInput) {
+            nextStepTallasBtn.addEventListener('click', function() {
+                var n = parseInt(numTallasInput.value) || 1;
+                var maxTallas = tallasDisponibles.length;
+                if (n > maxTallas) {
+                    errorMsg.textContent = `No puedes seleccionar más de ${maxTallas} tallas. Corrige el valor para continuar.`;
+                    errorMsg.style.display = 'block';
+                    return;
+                } else {
+                    errorMsg.style.display = 'none';
+                }
+                tallasInputsContainer.innerHTML = '';
+                for (let i = 0; i < n; i++) {
+                    var div = document.createElement('div');
+                    div.className = 'flex gap-2 items-center mb-4';
+                    let options = `<option value=''>Seleccionar talla</option>`;
+                    for (let t of tallasDisponibles) {
+                        options += `<option value='${t}'>${t}</option>`;
+                    }
+                    div.innerHTML = `
+                        <select name='talla${i}' class='border rounded px-3 py-2 w-1/2' required>${options}</select>
+                        <input type='number' min='0' value='0' class='cantidad-talla-input border rounded px-3 py-2 w-1/2' placeholder='Stock' required />
+                    `;
+                    tallasInputsContainer.appendChild(div);
+                }
+                step0.classList.add('hidden');
+                step1.classList.remove('hidden');
+            });
+            // Oculta el mensaje si el usuario corrige el valor
+            numTallasInput.addEventListener('input', function() {
+                var n = parseInt(numTallasInput.value) || 1;
+                var maxTallas = tallasDisponibles.length;
+                if (n > maxTallas) {
+                    errorMsg.textContent = `No puedes seleccionar más de ${maxTallas} tallas. Corrige el valor para continuar.`;
+                    errorMsg.style.display = 'block';
+                } else {
+                    errorMsg.style.display = 'none';
+                }
+            });
+        }
+        // Botón "Atrás": si está en step1, vuelve a step0; si está en step0, cierra el panel
+        if (closeStockPanelBtn && stockPanel && step0 && step1) {
+            closeStockPanelBtn.addEventListener('click', function() {
+                if (!step1.classList.contains('hidden')) {
+                    // Si estamos en el paso de tallas, volver a cantidad de tallas
+                    step1.classList.add('hidden');
+                    step0.classList.remove('hidden');
+                } else {
+                    // Si ya estamos en el paso 0, cerrar el panel
+                    stockPanel.style.maxHeight = '0px';
+                    setTimeout(function(){ stockPanel.classList.add('hidden'); }, 400);
+                }
+            });
+        }
+        // Guardar stock por talla al hacer clic en Guardar
+        var saveStockPanelBtn = document.getElementById('saveStockPanelBtn');
+        if (saveStockPanelBtn) {
+            saveStockPanelBtn.addEventListener('click', function() {
+                var selects = tallasInputsContainer.querySelectorAll('select');
+                var inputs = tallasInputsContainer.querySelectorAll('input[type="number"]');
+                var tallasArr = [];
+                var total = 0;
+                for (let i = 0; i < selects.length; i++) {
+                    var talla = selects[i].value;
+                    var cantidad = parseInt(inputs[i].value) || 0;
+                    if (talla && cantidad > 0) {
+                        tallasArr.push({ talla: talla, cantidad: cantidad });
+                        total += cantidad;
+                    }
+                }
+                document.getElementById('stock_tallas').value = JSON.stringify(tallasArr);
+                document.getElementById('stock_total').value = total;
+                var stockTotalLabel = document.getElementById('stockTotalLabel');
+                if (stockTotalLabel) {
+                    stockTotalLabel.textContent = '(total ' + total + ')';
+                }
+                // Cerrar panel
+                var stockPanel = document.getElementById('stockPanel');
+                if (stockPanel) {
+                    stockPanel.style.maxHeight = '0px';
+                    setTimeout(function(){ stockPanel.classList.add('hidden'); }, 400);
+                }
+            });
+        }
+    });
         let selectedImages = [];
         let selectedVideo = null;
 
@@ -673,7 +821,7 @@
             videoPreview.innerHTML = '';
             updateImageUploadArea();
         }
-    // Formateo europeo para el campo de precio: 1.234,56
+    // Formateo  el campo de precio: 1.234,56
     const priceInput = document.getElementById('price');
     const discountInput = document.getElementById('discount');
     // Crear elemento para mostrar el precio final y badge de descuento

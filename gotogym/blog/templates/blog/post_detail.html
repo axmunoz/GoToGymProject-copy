@@ -20,7 +20,7 @@
     </div>
 
     <article class="prose max-w-none lg:prose-lg prose-green prose-img:rounded-xl prose-headings:text-gray-800 mx-auto">
-      {{ post.content|linebreaks }}
+  {{ post.content|safe }}
     </article>
 
     <div class="mt-12 flex flex-col md:flex-row justify-between items-center border-t pt-6">

@@ -8,6 +8,54 @@
 			"group": "build",
 			"problemMatcher": [],
 			"args": []
+		},
+		{
+			"label": "makemigrations influencer commission_percent",
+			"type": "shell",
+			"command": "python manage.py makemigrations influencer",
+			"args": [],
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "migrate influencer commission_percent",
+			"type": "shell",
+			"command": "python manage.py migrate influencer",
+			"args": [],
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "makemigrations influencer comision",
+			"type": "shell",
+			"command": "python manage.py makemigrations influencer"
+		},
+		{
+			"label": "migrate influencer comision",
+			"type": "shell",
+			"command": "python manage.py migrate influencer"
+		},
+		{
+			"label": "makemigrations carrito cupon_code",
+			"type": "shell",
+			"command": "python manage.py makemigrations carrito"
+		},
+		{
+			"label": "migrate carrito cupon_code",
+			"type": "shell",
+			"command": "python manage.py migrate carrito"
+		},
+		{
+			"label": "makemigrations products talla stock por talla",
+			"type": "shell",
+			"command": "python manage.py makemigrations products carrito",
+			"group": "build"
+		},
+		{
+			"label": "migrate talla stock por talla",
+			"type": "shell",
+			"command": "python manage.py migrate",
+			"group": "build"
 		}
 	]
 }

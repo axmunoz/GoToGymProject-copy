@@ -11,4 +11,9 @@ urlpatterns = [
     path('update/<int:product_id>/', views.update_cart, name='update_cart'),
     path('checkout/', views_checkout.checkout, name='checkout'),
     path('payment-status/', views_checkout.payment_status, name='payment_status'),
+    
+    path('remove-coupon/', views.remove_coupon, name='remove_coupon'),  # This line remains unchanged
+    path('apply-coupon/', views.apply_coupon, name='apply_coupon'),  # New line added
+    path('resumen/<int:historial_id>/', views.resumen_compra, name='resumen_compra'),
+    path('historial/', views.historial_compras, name='historial_compras'),
 ]

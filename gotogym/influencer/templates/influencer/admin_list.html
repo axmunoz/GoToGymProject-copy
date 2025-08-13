@@ -1,0 +1,45 @@
+{% extends '_base_dasboard.html' %}
+{% load static %}
+{% block content %}
+<div class="max-w-5xl mx-auto mt-10">
+  <h1 class="text-3xl font-bold mb-6 flex items-center gap-2">
+    <span class="material-icons text-[#093f62]">groups</span>
+    Influencers
+  </h1>
+  <table class="min-w-full bg-white rounded-xl shadow overflow-hidden">
+    <thead class="bg-[#093f62] text-white">
+      <tr>
+        <th class="py-3 px-4 text-left">Usuario</th>
+        <th class="py-3 px-4 text-left">Email</th>
+        <th class="py-3 px-4 text-left">Cupón</th>
+        <th class="py-3 px-4 text-left">Comisión (%)</th>
+        <th class="py-3 px-4 text-left">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for influencer in influencers %}
+      <tr class="border-b hover:bg-gray-50" id="influencer-{{ influencer.pk }}">
+        <td class="py-3 px-4">{{ influencer.user.get_full_name|default:influencer.user.username }}</td>
+        <td class="py-3 px-4">{{ influencer.user.email }}</td>
+        <td class="py-3 px-4">{{ influencer.coupon_code }}</td>
+        <td class="py-3 px-4">
+          <form method="post" action="{% url 'influencer_admin_edit' influencer.pk %}" class="flex items-center gap-2">
+            {% csrf_token %}
+            <input type="number" name="commission" value="{{ influencer.commission_percent|floatformat:'g' }}" min="0" max="100" step="0.01" class="w-16 px-2 py-1 border rounded" required>
+            <button type="submit" class="bg-[#093f62] text-white px-3 py-1 rounded hover:bg-[#145080] transition">Guardar</button>
+          </form>
+        </td>
+        <td class="py-3 px-4">
+          <form method="post" action="{% url 'influencer_admin_delete' influencer.pk %}" onsubmit="return confirm('¿Seguro que deseas eliminar este influencer?');">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800 transition">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="py-6 text-center text-gray-500">No hay influencers registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

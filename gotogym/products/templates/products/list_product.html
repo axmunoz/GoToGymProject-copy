@@ -13,7 +13,7 @@
         <h1 class="text-3xl font-semibold text-gray-800 flex items-center gap-3">
             Lista de productos
         </h1>
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap gap-3 items-center">
             <a href="{% url 'products:add_category' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-700 active:scale-95 transition shadow-indigo-500/20 shadow-md">
               <span class="material-icons-outlined">add</span>
             Nueva categoría
@@ -23,7 +23,97 @@
             <span class="material-icons-outlined">add</span>
             Añadir Producto
             </a>
+            <button type="button" id="openTallaModalBtn" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100 active:scale-95 transition">
+                <span class="material-icons-outlined">add</span>
+                Añadir Tallaje
+            </button>
         </div>
+    <!-- Modal para añadir tallas -->
+    <div id="tallaModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+      <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border border-gray-200 text-center relative animate-fade-in">
+        <button id="closeTallaModal" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition text-2xl">
+          <span class="material-icons-outlined">close</span>
+        </button>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Añadir Tallaje</h2>
+        <form id="tallaForm" class="flex flex-col gap-4">
+          <div>
+            <label class="block text-gray-700 font-semibold mb-2">¿Cuántas tallas quieres crear?</label>
+            <input type="number" id="numTallasInput" min="1" max="20" value="1" class="w-24 border rounded px-2 py-1 text-center" required />
+          </div>
+          <div id="tallasInputsContainer"></div>
+          <button type="submit" class="mt-2 px-6 py-2 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Guardar tallas</button>
+        </form>
+      </div>
+    </div>
+    <script>
+      const openTallaModalBtn = document.getElementById('openTallaModalBtn');
+      const tallaModal = document.getElementById('tallaModal');
+      const closeTallaModal = document.getElementById('closeTallaModal');
+      const tallaForm = document.getElementById('tallaForm');
+      const numTallasInput = document.getElementById('numTallasInput');
+      const tallasInputsContainer = document.getElementById('tallasInputsContainer');
+      let tallas = [];
+      openTallaModalBtn.onclick = function() {
+        tallaModal.classList.remove('hidden');
+        renderTallaInputs();
+      };
+      closeTallaModal.onclick = function() {
+        tallaModal.classList.add('hidden');
+      };
+      tallaModal.onclick = function(e) { if (e.target === tallaModal) tallaModal.classList.add('hidden'); };
+      numTallasInput.oninput = renderTallaInputs;
+      function renderTallaInputs() {
+        const n = parseInt(numTallasInput.value) || 1;
+        tallasInputsContainer.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+          const div = document.createElement('div');
+          div.className = 'flex gap-2 items-center mb-2';
+          div.innerHTML = `<label class='font-semibold text-gray-600'>Talla ${i+1}:</label><input type='text' name='talla${i}' maxlength='10' class='border rounded px-2 py-1' required placeholder='Ej: S, M, L, Ú, etc.' />`;
+          tallasInputsContainer.appendChild(div);
+        }
+      }
+      tallaForm.onsubmit = function(e) {
+        e.preventDefault();
+        tallas = [];
+        const n = parseInt(numTallasInput.value) || 1;
+        for (let i = 0; i < n; i++) {
+          const val = tallaForm[`talla${i}`].value.trim();
+          if (val) tallas.push(val);
+        }
+        if (tallas.length === 0) {
+          alert('Debes ingresar al menos una talla.');
+          return;
+        }
+        // Detectar prefijo de idioma en la URL actual
+        let crearTallasUrl = '/products/crear_tallas/';
+        const pathMatch = window.location.pathname.match(/^\/(\w{2})\//);
+        if (pathMatch) {
+          crearTallasUrl = `/${pathMatch[1]}${crearTallasUrl}`;
+        }
+        fetch(crearTallasUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || ''
+          },
+          body: JSON.stringify({tallas: tallas})
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.ok) {
+            alert('Tallas guardadas: ' + data.creadas.join(', '));
+            tallaModal.classList.add('hidden');
+            // Opcional: recargar la página o actualizar la lista de tallas dinámicamente
+            location.reload();
+          } else {
+            alert('Error al guardar las tallas.');
+          }
+        })
+        .catch(() => {
+          alert('Error de red al guardar las tallas.');
+        });
+      };
+    </script>
     </div>
     <div class="overflow-x-auto rounded-2xl border border-gray-200">
       <table class="min-w-full divide-y divide-gray-200 text-sm">

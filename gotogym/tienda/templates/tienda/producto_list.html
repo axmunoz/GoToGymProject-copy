@@ -30,37 +30,70 @@
       <div id="slider-wrapper" class="overflow-hidden">
         <div id="featured-slider" class="flex gap-6 transition-all duration-300">
           {% for producto in featured_products %}
-          <div class="featured-card min-w-[220px] max-w-[240px] bg-white rounded-xl shadow p-4 flex flex-col items-center group relative">
-            <div class="relative w-full mb-2">
+          <div class="featured-card min-w-[220px] max-w-[240px] bg-white rounded-xl shadow p-4 flex flex-col items-center">
+            <div class="relative w-full flex items-center justify-center">
+              {% if producto.stock == 0 %}
+                <span class="absolute top-2 left-2 z-30 sin-stock-label" style="background: #ff2d2d !important;color:#fff;filter:none;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,0.12);font-weight:bold;padding:0.25rem 0.75rem;border-radius:0.5rem;font-size:0.85rem;">Agotado</span>
+              {% endif %}
               {% if producto.images.first %}
-                <img src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="h-32 object-contain w-full rounded" loading="lazy" />
+                <img src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="h-32 object-contain mb-2 rounded w-full {% if producto.stock == 0 %}grayscale opacity-60{% endif %}" loading="lazy" />
               {% else %}
-                <div class="h-32 w-full flex items-center justify-center bg-gray-100 text-gray-400 rounded">Sin imagen</div>
+                <div class="h-32 w-full flex items-center justify-center bg-gray-100 text-gray-400 rounded {% if producto.stock == 0 %}grayscale{% endif %}">Sin imagen</div>
               {% endif %}
-              {% if producto.discount and producto.discount > 0 %}
-                <span class="absolute bottom-2 right-2 px-2 py-1 rounded bg-orange-500 text-white text-xs font-bold shadow">-{{ producto.discount|floatformat:0 }}%</span>
-              {% endif %}
-              <button 
-                class="absolute top-2 right-2 bg-[#C5A46B] text-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none z-10 add-to-cart-btn"
-                data-product-id="{{ producto.id }}"
-                title="Añadir al carrito"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 18c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm10 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zM7.334 16h9.332c.828 0 1.554-.522 1.847-1.303l2.666-6.666A1 1 0 0 0 20.334 6H6.21l-.94-2.342A1 1 0 0 0 4.334 3H2.334v2h1.334l3.6 8.59-1.35 2.44C5.16 16.37 5.92 18 7.334 18zm0-2l1.1-2h7.132l1.1 2H7.334z"/>
-                </svg>
-              </button>
+              <form class="absolute top-2 right-2" method="post" action="{% url 'carrito:add_to_cart' producto.id %}" onsubmit="return validarTallaSlider(this)">
+                {% csrf_token %}
+                <input type="hidden" name="talla" value="">
+                <button type="submit" class="bg-[#C5A46B] text-white rounded-full p-2 shadow-lg hover:bg-[#093f62] transition-opacity duration-200 focus:outline-none z-10 add-to-cart-btn" title="Añadir al carrito" {% if producto.stock == 0 %}disabled style="background:#fc7575;cursor:not-allowed;"{% endif %}>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 18c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm10 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zM7.334 16h9.332c.828 0 1.554-.522 1.847-1.303l2.666-6.666A1 1 0 0 0 20.334 6H6.21l-.94-2.342A1 1 0 0 0 4.334 3H2.334v2h1.334l3.6 8.59-1.35 2.44C5.16 16.37 5.92 18 7.334 18zm0-2l1.1-2h7.132l1.1 2H7.334z"/>
+                  </svg>
+                </button>
+              </form>
             </div>
-            <div class="font-semibold text-center text-[#093f62] mt-2">{{ producto.name }}</div>
-            <div class="w-full flex items-center justify-center mb-2 mt-1">
-              {% if producto.discount and producto.discount > 0 %}
-                <div class="flex flex-col items-center flex-1">
-                  <span class="text-[#C5A46B] font-bold text-2xl leading-tight">${{ producto.discounted_price|floatformat:0|intcomma }}</span>
-                  <span class="text-gray-400 text-xs font-semibold line-through">${{ producto.price|floatformat:0|intcomma }}</span>
-                </div>
-              {% else %}
-                <span class="text-[#C5A46B] font-bold text-2xl">${{ producto.price|floatformat:0|intcomma }}</span>
-              {% endif %}
-            </div>
+            <div class="font-semibold text-center text-[#093f62]">{{ producto.name }}</div>
+            {% if producto.discount and producto.discount|add:'0' > 0 %}
+              <div class="flex items-center gap-2 mb-2">
+                <span class="line-through text-gray-400 text-base">${{ producto.price|floatformat:0 }}</span>
+                <span class="text-[#C5A46B] font-bold text-lg">${{ producto.discounted_price|floatformat:0 }}</span>
+                <span class="bg-[#f97316] text-white text-xs font-bold px-2 py-1 rounded">-{{ producto.discount }}%</span>
+              </div>
+              <div class="mb-2">
+                <select name="talla" required class="rounded px-2 py-1 text-sm font-semibold bg-[#e7c98a] text-[#093f62]">
+                  <option value="" disabled selected>Talla</option>
+                  {% for stock in producto.stocks.all %}
+                    {% if stock.cantidad > 0 %}
+                      <option value="{{ stock.talla }}">{{ stock.talla }}</option>
+                    {% endif %}
+                  {% endfor %}
+<script>
+function validarTallaSlider(form) {
+  var card = form.closest('.featured-card');
+  var select = card.querySelector('select[name="talla"]');
+  var hidden = form.querySelector('input[name="talla"]');
+  if (!select || !select.value) {
+    if (select) select.focus();
+    alert('Por favor selecciona una talla antes de añadir al carrito.');
+    return false;
+  }
+  hidden.value = select.value;
+  return true;
+}
+</script>
+                </select>
+              </div>
+            {% else %}
+              <div class="text-[#C5A46B] font-bold text-lg mb-2">${{ producto.price|floatformat:0 }}</div>
+              <div class="mb-2">
+                <select name="talla" required class="rounded px-2 py-1 text-sm font-semibold bg-[#e7c98a] text-[#093f62]">
+                  <option value="" disabled selected>Talla</option>
+                  {% for stock in producto.stocks.all %}
+                    {% if stock.cantidad > 0 %}
+                      <option value="{{ stock.talla }}">{{ stock.talla }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            {% endif %}
             <a href="{% url 'tienda:producto_detail' producto.id %}"
                class="mt-auto inline-block px-4 py-1 rounded-full bg-[#C5A46B] text-white font-semibold text-sm hover:bg-[#093f62] hover:text-[#C5A46B] transition">
               Ver detalles
@@ -79,7 +112,7 @@
     </div>
   </div>
 
-
+  {#–––––––––––– Filtros horizontales ––––––––––––#}
   <form method="get" id="horizontal-filter-form"
         class="flex flex-wrap items-center justify-between gap-4 bg-white rounded-2xl shadow-lg px-8 py-5 mb-8 border border-[#e7c98a]">
     <div class="flex items-center gap-2 flex-1 min-w-[250px] order-1">
@@ -206,42 +239,165 @@
 
 
     <main class="flex-1">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {% csrf_token %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for producto in productos %}
         <div class="bg-white rounded-xl shadow hover:shadow-lg transition-all p-4 flex flex-col group relative">
+          
           <div class="relative mb-4">
             {% if producto.images.first %}
-              <img src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="w-full h-40 object-contain rounded" loading="lazy">
+              <div class="relative">
+                {% if producto.stock == 0 %}
+                  <span class="absolute top-2 left-2 z-30 sin-stock-label" style="background: #ff2d2d !important;;color:#fff;filter:none;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,0.12);font-weight:bold;padding:0.25rem 0.75rem;border-radius:0.5rem;font-size:0.85rem;">Agotado</span>
+                {% endif %}
+                <img src="{{ producto.images.first.image.url }}" alt="{{ producto.name }}" class="w-full h-40 object-contain rounded {% if producto.stock == 0 %}grayscale opacity-60 {% endif %}" loading="lazy ">
+              </div>
             {% else %}
-              <div class="w-full h-40 bg-gray-100 flex items-center justify-center rounded text-gray-400">
-                Sin imagen
+              <div class="relative">
+                {% if producto.stock == 0 %}
+                  <span class="absolute top-2 left-2 z-20 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded shadow-lg" style="filter:none;opacity:1;">Agotado</span>
+                {% endif %}
+                <div class="w-full h-40 bg-gray-100 flex items-center justify-center rounded text-gray-400">
+                  Sin imagen
+                </div>
               </div>
             {% endif %}
-            <button 
-              class="absolute top-1/2 right-4 -translate-y-1/2 bg-[#C5A46B] text-white rounded-full p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none z-10 add-to-cart-btn"
-              data-product-id="{{ producto.id }}"
-              title="Añadir al carrito"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M7 18c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm10 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zM7.334 16h9.332c.828 0 1.554-.522 1.847-1.303l2.666-6.666A1 1 0 0 0 20.334 6H6.21l-.94-2.342A1 1 0 0 0 4.334 3H2.334v2h1.334l3.6 8.59-1.35 2.44C5.16 16.37 5.92 18 7.334 18zm0-2l1.1-2h7.132l1.1 2H7.334z"/>
-              </svg>
-            </button>
+            <form class="absolute top-1/2 right-4 -translate-y-1/2 flex items-center" method="post" action="{% url 'carrito:add_to_cart' producto.id %}" onsubmit="return validarTalla(this)">
+              {% csrf_token %}
+                    {% csrf_token %}
+                    <input type="hidden" name="talla" value="">
+                    <button type="submit" class="bg-[#C5A46B] text-white rounded-full p-3 shadow-lg transition-opacity duration-200 focus:outline-none z-10 add-to-cart-btn" title="Añadir al carrito" {% if producto.stock == 0 %}disabled style="background:#fc7575;cursor:not-allowed;"{% endif %}>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 18c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm10 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zM7.334 16h9.332c.828 0 1.554-.522 1.847-1.303l2.666-6.666A1 1 0 0 0 20.334 6H6.21l-.94-2.342A1 1 0 0 0 4.334 3H2.334v2h1.334l3.6 8.59-1.35 2.44C5.16 16.37 5.92 18 7.334 18zm0-2l1.1-2h7.132l1.1 2H7.334z"/>
+                      </svg>
+                    </button>
+            </form>
           </div>
           <h3 class="font-bold text-lg mb-1">{{ producto.name }}</h3>
-          <div class="flex items-center gap-2 mb-1">
-            {% if producto.discount and producto.discount > 0 %}
-              <span class="text-gray-400 text-base font-semibold line-through">${{ producto.price|floatformat:0|intcomma }}</span>
+          {% if producto.discount and producto.discount|add:'0' > 0 %}
+            <div class="flex items-center gap-2 mb-1">
+              <span class="line-through text-gray-400 text-base">${{ producto.price|floatformat:0|intcomma }}</span>
               <span class="text-[#C5A46B] font-bold text-xl">${{ producto.discounted_price|floatformat:0|intcomma }}</span>
-              <span class="ml-2 px-2 py-1 rounded bg-orange-500 text-white text-xs font-bold">-{{ producto.discount|floatformat:0 }}%</span>
-            {% else %}
-              <span class="text-[#C5A46B] font-bold text-xl">${{ producto.price|floatformat:0|intcomma }}</span>
-            {% endif %}
-          </div>
+              <span class="bg-[#f97316] text-white text-xs font-bold px-2 py-1 rounded">-{{ producto.discount }}%</span>
+            </div>
+          {% else %}
+            <div class="text-[#C5A46B] font-bold text-xl mb-1">${{ producto.price|floatformat:0|intcomma }}</div>
+          {% endif %}
           <div class="mb-2 text-sm text-gray-500">Categoría: {{ producto.category.name }}</div>
-          <a href="{% url 'tienda:producto_detail' producto.id %}" class="mt-auto inline-block bg-gradient-to-r from-[#C5A46B] to-[#e7c98a] text-black font-bold py-2 px-4 rounded-lg shadow hover:from-[#e7c98a] hover:to-[#C5A46B] transition-all text-center">
-            Ver detalles
-          </a>
+          <div class="flex items-center justify-center mb-2 gap-2">
+            <select name="talla" required class="rounded px-4 py-2 text-sm font-semibold bg-[#e7c98a] text-[#093f62]">
+              <option value="" disabled selected>Talla</option>
+              {% for stock in producto.stocks.all %}
+                {% if stock.cantidad > 0 %}
+                  <option value="{{ stock.talla }}">{{ stock.talla }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+            <a href="{% url 'tienda:producto_detail' producto.id %}" class="inline-block bg-gradient-to-r from-[#C5A46B] to-[#e7c98a] text-black font-bold py-2 px-4 rounded-lg shadow hover:from-[#e7c98a] hover:to-[#C5A46B] transition-all text-center">
+              Ver detalles
+            </a>
+          </div>
         </div>
+<script>
+        function showToast(message, color='#ff4e4e') {
+          let container = document.getElementById('toast-container');
+          if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.position = 'fixed';
+            container.style.top = '24px';
+            container.style.right = '24px';
+            container.style.zIndex = '9999';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.gap = '8px';
+            document.body.appendChild(container);
+          }
+          const toast = document.createElement('div');
+          toast.textContent = message;
+          toast.style.background = color;
+          toast.style.color = 'white';
+          toast.style.padding = '12px 24px';
+          toast.style.borderRadius = '8px';
+          toast.style.fontWeight = 'bold';
+          toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+          toast.style.fontSize = '16px';
+          container.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+        }
+
+        function updateCartCounter(newCount) {
+          var cartCounter = document.getElementById('cart-count');
+          if (cartCounter) {
+            cartCounter.textContent = newCount;
+          }
+        }
+
+        function validarTalla(form) {
+          var card = form.closest('.bg-white');
+          var select = card.querySelector('select[name="talla"]');
+          var hidden = form.querySelector('input[name="talla"]');
+          if (!select.value) {
+            select.focus();
+            showToast('Por favor selecciona una talla antes de añadir al carrito.');
+            return false;
+          }
+          hidden.value = select.value;
+
+          // AJAX para añadir al carrito sin redireccionar
+          var formData = new FormData(form);
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', form.action, true);
+          xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              try {
+                var data = JSON.parse(xhr.responseText);
+                if (data.cart_count !== undefined) {
+                  updateCartCounter(data.cart_count);
+                }
+              } catch(e) {}
+              showToast('Producto añadido al carrito', '#4caf50');
+            } else {
+              showToast('Error al añadir al carrito');
+            }
+          };
+          xhr.send(formData);
+          return false;
+        }
+
+        function validarTallaSlider(form) {
+          var card = form.closest('.featured-card');
+          var select = card.querySelector('select[name="talla"]');
+          var hidden = form.querySelector('input[name="talla"]');
+          if (!select || !select.value) {
+            if (select) select.focus();
+            showToast('Por favor selecciona una talla antes de añadir al carrito.');
+            return false;
+          }
+          hidden.value = select.value;
+          // AJAX para añadir al carrito sin redireccionar
+          var formData = new FormData(form);
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', form.action, true);
+          xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              try {
+                var data = JSON.parse(xhr.responseText);
+                if (data.cart_count !== undefined) {
+                  updateCartCounter(data.cart_count);
+                }
+              } catch(e) {}
+              showToast('Producto añadido al carrito', '#4caf50');
+            } else {
+              showToast('Error al añadir al carrito');
+            }
+          };
+          xhr.send(formData);
+          return false;
+        }
+</script>
         {% empty %}
         <div class="col-span-full text-center text-gray-400 py-8">No hay productos para mostrar.</div>
         {% endfor %}
@@ -272,6 +428,7 @@
 
 </div> 
 <script>
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const slider   = document.getElementById('featured-slider');
@@ -345,5 +502,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }));
 });
 </script>
-<script src="{% static 'tienda/add_to_cart.js' %}"></script>
+
 {% endblock %}

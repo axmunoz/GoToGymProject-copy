@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MercadoPago Checkout</title>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+</head>
+<body>
+    <h2>Pago con MercadoPago</h2>
+    <button id="checkout-btn">Pagar</button>
+    <div id="modal-container"></div>
+    <script>
+        document.getElementById('checkout-btn').onclick = function() {
+            fetch('/mercadopago/crear-preferencia/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: 'unit_price=100.0'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.response && data.response.id) {
+                    const mp = new MercadoPago('{{ mercadopago_public_key }}', {
+                        locale: 'es-AR'
+                    });
+                    mp.checkout({
+                        preference: {
+                            id: data.response.id
+                        },
+                        autoOpen: true // Abre automáticamente el modal
+                    });
+                } else {
+                    alert('No se pudo iniciar el pago. Intenta más tarde.');
+                }
+            })
+            .catch(() => {
+                alert('Error al conectar con MercadoPago.');
+            });
+        };
+    </script>
+</body>
+</html>

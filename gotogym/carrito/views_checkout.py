@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from carrito.models import CarritoHistorial
 
 @login_required(login_url='/accounts/login/')
 def checkout(request):
@@ -63,6 +64,42 @@ def payment_status(request):
     merchant_order_id = request.GET.get('merchant_order_id')
     if status == 'approved':
         request.session['cart'] = {}
+        # Marcar historial de carrito como pagado
+        if request.user.is_authenticated:
+            try:
+                carrito_historial = CarritoHistorial.objects.get(usuario=request.user, estado='pendiente')
+                carrito_historial.estado = 'pagado'
+                carrito_historial.save()
+                # Registrar o actualizar compra referida si hay cupón
+                cupon_code = request.session.get('cupon_code')
+                if cupon_code:
+                    from influencer.models import InfluencerProfile, CompraReferida
+                    try:
+                        influencer = InfluencerProfile.objects.get(coupon_code=cupon_code)
+                        monto = sum(item.product.price * item.cantidad for item in carrito_historial.items.all())
+                        comision = round(float(monto) * float(influencer.commission_percent) / 100, 2)
+                        compra, created = CompraReferida.objects.get_or_create(
+                            usuario=request.user,
+                            influencer=influencer,
+                            carrito_historial=carrito_historial,
+                            defaults={
+                                'monto': monto,
+                                'estado': 'completada',
+                                'comision': comision,
+                            }
+                        )
+                        # Siempre recalcula y guarda la comisión
+                        compra.monto = monto
+                        compra.estado = 'completada'
+                        compra.comision = comision
+                        compra.save()
+                        compra.productos.set([item.product for item in carrito_historial.items.all()])
+                        influencer.commission_balance += comision
+                        influencer.save()
+                    except InfluencerProfile.DoesNotExist:
+                        pass
+            except CarritoHistorial.DoesNotExist:
+                pass
     context = {
         'status': status,
         'payment_id': payment_id,
